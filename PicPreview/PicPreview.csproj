@@ -96,5 +96,17 @@
   <ItemGroup>
     <None Include="Resources\resource_32xLG.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gear_32xLG.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Hammer_Builder_32xLG.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Save_32x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Edit_32xMD.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

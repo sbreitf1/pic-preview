@@ -55,6 +55,7 @@ namespace PicPreview
             }
         }
 
+
         private void tsbZoomModeFit_ButtonClick(object sender, EventArgs e)
         {
             SetZoomMode(ImageZoomModes.Fill);
@@ -63,6 +64,17 @@ namespace PicPreview
         private void tsbZoomModeOriginal_ButtonClick(object sender, EventArgs e)
         {
             SetZoomMode(ImageZoomModes.Original);
+        }
+
+
+        private void tsbNext_ButtonClick(object sender, EventArgs e)
+        {
+            LoadNextImage();
+        }
+
+        private void tsbPrevious_ButtonClick(object sender, EventArgs e)
+        {
+            LoadPreviousImage();
         }
 
 
@@ -82,6 +94,12 @@ namespace PicPreview
                     LoadImage(files[0]);
                 }
             }
+        }
+
+
+        private void tsbOptions_ButtonClick(object sender, EventArgs e)
+        {
+
         }
 
 
@@ -105,8 +123,17 @@ namespace PicPreview
             tsbZoomModeOriginal.Enabled = (this.imageCollection.IsImageLoaded && this.zoomMode != ImageZoomModes.Original);
             tsbPrevious.Enabled = this.imageCollection.CanSwipeImages;
             tsbNext.Enabled = this.imageCollection.CanSwipeImages;
-            this.Cursor = (this.CanDragImage ? Cursors.SizeAll : Cursors.Default);
-            statusStrip.Cursor = Cursors.Default;
+            tsbImageEffects.Enabled = false;
+            tsbSave.Enabled = this.imageCollection.IsImageLoaded;
+
+            // only change when really needed, so the resizing-cursor doesn't get unnecessarily changed
+            Cursor targetCursor = (this.CanDragImage ? Cursors.SizeAll : Cursors.Default);
+            if (this.Cursor != targetCursor)
+            {
+                this.Cursor = targetCursor;
+                statusStrip.Cursor = Cursors.Default;
+            }
+
             UpdateTitle();
         }
         #endregion
@@ -205,7 +232,7 @@ namespace PicPreview
         {
             if (e.Button == MouseButtons.Left)
             {
-                this.dragging = true;
+                this.dragging = this.CanDragImage;
                 this.lastDragPos = e.Location;
             }
         }
@@ -214,10 +241,15 @@ namespace PicPreview
         {
             if (this.dragging)
             {
-                this.offsetX += (e.X - this.lastDragPos.X);
-                this.offsetY += (e.Y - this.lastDragPos.Y);
-                this.lastDragPos = e.Location;
-                this.Invalidate();
+                if (this.CanDragImage)
+                {
+                    SetZoomMode(ImageZoomModes.Manual);
+
+                    this.offsetX += (e.X - this.lastDragPos.X);
+                    this.offsetY += (e.Y - this.lastDragPos.Y);
+                    this.lastDragPos = e.Location;
+                    this.Invalidate();
+                }
             }
         }
 

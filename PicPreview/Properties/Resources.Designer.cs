@@ -93,6 +93,36 @@ namespace PicPreview.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Edit_32xMD {
+            get {
+                object obj = ResourceManager.GetObject("Edit_32xMD", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap gear_32xLG {
+            get {
+                object obj = ResourceManager.GetObject("gear_32xLG", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Hammer_Builder_32xLG {
+            get {
+                object obj = ResourceManager.GetObject("Hammer_Builder_32xLG", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap resource_32xLG {
             get {
                 object obj = ResourceManager.GetObject("resource_32xLG", resourceCulture);
@@ -106,6 +136,16 @@ namespace PicPreview.Properties {
         internal static System.Drawing.Bitmap resource_32xMD {
             get {
                 object obj = ResourceManager.GetObject("resource_32xMD", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Save_32x {
+            get {
+                object obj = ResourceManager.GetObject("Save_32x", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
