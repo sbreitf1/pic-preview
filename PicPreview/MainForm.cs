@@ -22,10 +22,8 @@ namespace PicPreview
 
     public partial class MainForm : Form
     {
-        private string currentDirectory;
-        private string currentFile;
+        ImageCollection imageCollection;
         private Exception loadException;
-        private Image currentImage;
         private ImageZoomModes zoomMode;
         private float zoom;
         private int offsetX, offsetY;
@@ -41,8 +39,14 @@ namespace PicPreview
             this.textBrush = Brushes.Black;
             this.textFont = this.Font;
 
-            LoadImage(@"E:\Eigene Dateien\Eigene Bilder\Gesammelt\Fun\_cart91.jpg");
-            //LoadImage(@"E:\Eigene Dateien\Eigene Bilder\Gesammelt\Tiere\bX0DH.jpg");
+            this.imageCollection = new ImageCollection();
+        }
+
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+                LoadImage(args[1]);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -51,24 +55,38 @@ namespace PicPreview
         }
 
 
+        private void UpdateTitle()
+        {
+            //if (Math.Abs(1 - this.zoom) <= 0.001)
+            if (this.zoom == 1)
+                this.Text = this.imageCollection.CurrentFileName + " - PicPreview";
+            else
+                this.Text = this.imageCollection.CurrentFileName + " (" + Math.Round(100 * this.zoom) + "%) - PicPreview";
+        }
+
         public void LoadImage(string file)
         {
+            if (file == null)
+                return;
+
             try
             {
-                if (this.currentImage != null)
+                try
                 {
-                    this.currentImage.Dispose();
-                    this.currentImage = null;
+                    this.imageCollection.SelectImage(file);
+
+                    // paint will render exceptions instead of images, when it is set
+                    this.loadException = null;
+                }
+                catch (Exception ex)
+                {
+                    this.loadException = ex;
                 }
 
-                this.currentFile = file;
-                this.currentDirectory = Path.GetDirectoryName(this.currentFile);
                 UpdateTitle();
-                this.currentImage = new Image(this.currentFile);
                 this.zoomMode = ImageZoomModes.Fill;
-                this.loadException = null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 //TODO log and show error message
 
@@ -77,37 +95,31 @@ namespace PicPreview
             RedrawImage();
         }
 
-
-        protected bool IsImageFile(string file)
+        public void LoadPreviousImage()
         {
-            return true;
-        }
-
-        protected int FindFileName(string file, string[] files)
-        {
-            return -1;   
+            LoadImage(this.imageCollection.GetPreviousImage());
         }
 
         public void LoadNextImage()
         {
-            string[] files = Directory.GetFiles(this.currentDirectory);
+            LoadImage(this.imageCollection.GetNextImage());
         }
 
-        public void LoadPreviousImage()
+        
+        private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
-
+            switch(e.KeyCode)
+            {
+                case Keys.Left:
+                    LoadPreviousImage();
+                    break;
+                case Keys.Right:
+                    LoadNextImage();
+                    break;
+            }
         }
 
-        private void UpdateTitle()
-        {
-            //if (Math.Abs(1 - this.zoom) <= 0.001)
-            if (this.zoom == 1)
-                this.Text = Path.GetFileName(this.currentFile) + " - PicPreview";
-            else
-                this.Text = Path.GetFileName(this.currentFile) + " (" + Math.Round(100 * this.zoom) + "%) - PicPreview";
-        }
-
-
+        
         private void MainForm_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -137,11 +149,11 @@ namespace PicPreview
             Rectangle imageRect = GetImageRect();
             if (this.zoomMode == ImageZoomModes.Fill)
             {
-                if (this.currentImage.Bitmap.Width <= imageRect.Width && this.currentImage.Bitmap.Height <= imageRect.Height)
+                if (this.imageCollection.CurrentImage.Bitmap.Width <= imageRect.Width && this.imageCollection.CurrentImage.Bitmap.Height <= imageRect.Height)
                     this.zoom = 1;
                 else
-                    this.zoom = Math.Min((float)imageRect.Width / (float)this.currentImage.Bitmap.Width, (float)imageRect.Height / (float)this.currentImage.Bitmap.Height);
-                Size zoomedSize = new Size((int)(this.zoom * this.currentImage.Bitmap.Width), (int)(this.zoom * this.currentImage.Bitmap.Height));
+                    this.zoom = Math.Min((float)imageRect.Width / (float)this.imageCollection.CurrentImage.Bitmap.Width, (float)imageRect.Height / (float)this.imageCollection.CurrentImage.Bitmap.Height);
+                Size zoomedSize = new Size((int)(this.zoom * this.imageCollection.CurrentImage.Bitmap.Width), (int)(this.zoom * this.imageCollection.CurrentImage.Bitmap.Height));
                 this.offsetX = (imageRect.Width - zoomedSize.Width) / 2;
                 this.offsetY = (imageRect.Height - zoomedSize.Height) / 2;
             }
@@ -153,9 +165,9 @@ namespace PicPreview
         {
             if (this.loadException == null)
             {
-                if (this.currentImage != null)
+                if (this.imageCollection.CurrentImage != null)
                 {
-                    if (this.currentImage.Bitmap != null)
+                    if (this.imageCollection.CurrentImage.Bitmap != null)
                     {
                         // update zoom and offset
                         UpdateViewParameters();
@@ -163,7 +175,7 @@ namespace PicPreview
                         if (this.zoom > 0)
                         {
                             Rectangle imageRect = GetImageRect();
-                            Size zoomedSize = new Size((int)(this.zoom * this.currentImage.Bitmap.Width), (int)(this.zoom * this.currentImage.Bitmap.Height));
+                            Size zoomedSize = new Size((int)(this.zoom * this.imageCollection.CurrentImage.Bitmap.Width), (int)(this.zoom * this.imageCollection.CurrentImage.Bitmap.Height));
 
                             Rectangle src, dst;
 
@@ -177,7 +189,7 @@ namespace PicPreview
                             else if (this.zoom < 1)
                             {
                                 e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                                src = new Rectangle(0, 0, this.currentImage.Bitmap.Width, this.currentImage.Bitmap.Height);
+                                src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Bitmap.Width, this.imageCollection.CurrentImage.Bitmap.Height);
                                 dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                             }
                             else
@@ -191,7 +203,7 @@ namespace PicPreview
                             dst.X += imageRect.X;
                             dst.Y += imageRect.Y;
                             // draw
-                            e.Graphics.DrawImage(this.currentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
+                            e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
                             e.Graphics.DrawRectangle(Pens.Black, dst);
                         }
                     }
