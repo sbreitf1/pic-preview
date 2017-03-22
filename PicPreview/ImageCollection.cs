@@ -18,6 +18,10 @@ namespace PicPreview
         private Image currentImage;
         public Image CurrentImage { get { return this.currentImage; } }
 
+        public bool IsFileSelected { get { return !string.IsNullOrWhiteSpace(this.currentFile); } }
+        public bool IsImageLoaded { get { return this.currentImage != null; } }
+        public bool CanSwipeImages { get { return !string.IsNullOrWhiteSpace(this.currentDirectory) && Directory.Exists(this.currentDirectory); } }
+
         HashSet<string> imageExtensions;
 
 
@@ -35,16 +39,22 @@ namespace PicPreview
 
         public void SelectImage(string imageFile)
         {
-            // disposing unused Bitmap objects is important as they most likely introduce memory leaks
-            if (this.currentImage != null)
+            try
             {
-                this.currentImage.Dispose();
-                this.currentImage = null;
+                // disposing unused Bitmap objects is important as they most likely introduce memory leaks
+                if (this.currentImage != null)
+                {
+                    this.currentImage.Dispose();
+                    this.currentImage = null;
+                }
             }
+            catch { }
 
             // safe location information first for browsing (left/right)
             this.currentFile = imageFile;
             this.currentDirectory = Path.GetDirectoryName(this.currentFile);
+
+            // now try to load the image
             this.currentImage = new Image(this.currentFile);
         }
 
