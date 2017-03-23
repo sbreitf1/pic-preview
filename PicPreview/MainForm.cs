@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
 
 namespace PicPreview
 {
@@ -169,6 +162,7 @@ namespace PicPreview
         }
 
         private ImageZoomModes zoomMode = ImageZoomModes.Manual;
+        private readonly float[] ZoomLevels = new float[] { 0.001f, 0.0025f, 0.005f, 0.0075f, 0.01f, 0.025f, 0.05f, 0.075f, 0.1f, 0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 16f, 18f, 20f };
         private float zoom;
         private int offsetX, offsetY;
 
@@ -204,8 +198,8 @@ namespace PicPreview
             float oldOffsetY = this.offsetY;
 
             this.zoom = newZoom;
-            this.offsetX = (int)(fix.X - this.zoom * (fix.X - oldOffsetX) / oldZoom);
-            this.offsetY = (int)(fix.Y - this.zoom * (fix.Y - oldOffsetY) / oldZoom);
+            this.offsetX = (int)((float)fix.X - this.zoom * ((float)fix.X - oldOffsetX) / oldZoom - 0.5f);
+            this.offsetY = (int)((float)fix.Y - this.zoom * ((float)fix.Y - oldOffsetY) / oldZoom - 0.5f);
 
             ValidateZoom();
 
@@ -217,7 +211,18 @@ namespace PicPreview
             if (!this.CanZoomIn)
                 return;
 
-            ChangeZoom(this.zoom * 1.1f, fix);
+            // find next higher zoom level
+            float targetZoom = this.zoom;
+            for (int i = 0; i < this.ZoomLevels.Length; i++)
+            {
+                if (this.ZoomLevels[i] > targetZoom)
+                {
+                    targetZoom = this.ZoomLevels[i];
+                    break;
+                }
+            }
+
+            ChangeZoom(targetZoom, fix);
         }
         private void ZoomIn()
         {
@@ -230,7 +235,18 @@ namespace PicPreview
             if (!this.CanZoomOut)
                 return;
 
-            ChangeZoom(this.zoom / 1.1f, fix);
+            // find next lower zoom level
+            float targetZoom = this.zoom;
+            for (int i = (this.ZoomLevels.Length - 1); i >= 0; i--)
+            {
+                if (this.ZoomLevels[i] < targetZoom)
+                {
+                    targetZoom = this.ZoomLevels[i];
+                    break;
+                }
+            }
+
+            ChangeZoom(targetZoom, fix);
         }
         private void ZoomOut()
         {
@@ -240,10 +256,11 @@ namespace PicPreview
 
         private void MainForm_MouseWheel(object sender, MouseEventArgs e)
         {
+            Rectangle imageRect = GetImageRect();
             if (e.Delta > 0)
-                ZoomIn(e.Location);
+                ZoomIn(new Point(e.X - imageRect.X, e.Y - imageRect.Y));
             else if (e.Delta < 0)
-                ZoomOut(e.Location);
+                ZoomOut(new Point(e.X - imageRect.X, e.Y - imageRect.Y));
         }
 
 
