@@ -28,6 +28,18 @@ namespace PicPreview
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
+            if (Properties.Settings.Default.WindowX > -1000000 && Properties.Settings.Default.WindowY > -1000000 && Properties.Settings.Default.WindowWidth > 0 && Properties.Settings.Default.WindowHeight > 0)
+            {
+                this.Left = Properties.Settings.Default.WindowX;
+                this.Top = Properties.Settings.Default.WindowY;
+                this.Width = Properties.Settings.Default.WindowWidth;
+                this.Height = Properties.Settings.Default.WindowHeight;
+            }
+            if (Properties.Settings.Default.WindowMaximized)
+            {
+                this.WindowState = FormWindowState.Maximized;
+            }
+
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
                 LoadImage(args[1]);
@@ -37,7 +49,19 @@ namespace PicPreview
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-
+            if (this.WindowState == FormWindowState.Maximized)
+            {
+                Properties.Settings.Default.WindowMaximized = true;
+            }
+            else if (this.WindowState == FormWindowState.Normal)
+            {
+                Properties.Settings.Default.WindowMaximized = false;
+                Properties.Settings.Default.WindowX = this.Left;
+                Properties.Settings.Default.WindowY = this.Top;
+                Properties.Settings.Default.WindowWidth = this.Width;
+                Properties.Settings.Default.WindowHeight = this.Height;
+            }
+            Properties.Settings.Default.Save();
         }
         #endregion
 
@@ -133,8 +157,6 @@ namespace PicPreview
                 this.Cursor = targetCursor;
                 statusStrip.Cursor = Cursors.Default;
             }
-
-            UpdateTitle();
         }
         #endregion
 
@@ -173,17 +195,29 @@ namespace PicPreview
             }
         }
 
+        private void ChangeZoom(float newZoom, Point fix)
+        {
+            this.zoomMode = ImageZoomModes.Manual;
+
+            float oldZoom = this.zoom;
+            float oldOffsetX = this.offsetX;
+            float oldOffsetY = this.offsetY;
+
+            this.zoom = newZoom;
+            this.offsetX = (int)(fix.X - this.zoom * (fix.X - oldOffsetX) / oldZoom);
+            this.offsetY = (int)(fix.Y - this.zoom * (fix.Y - oldOffsetY) / oldZoom);
+
+            ValidateZoom();
+
+            this.Invalidate();
+        }
+
         private void ZoomIn(Point fix)
         {
             if (!this.CanZoomIn)
                 return;
 
-            this.zoomMode = ImageZoomModes.Manual;
-
-            this.zoom *= 1.1f;
-            ValidateZoom();
-
-            this.Invalidate();
+            ChangeZoom(this.zoom * 1.1f, fix);
         }
         private void ZoomIn()
         {
@@ -196,12 +230,7 @@ namespace PicPreview
             if (!this.CanZoomOut)
                 return;
 
-            this.zoomMode = ImageZoomModes.Manual;
-
-            this.zoom /= 1.1f;
-            ValidateZoom();
-
-            this.Invalidate();
+            ChangeZoom(this.zoom / 1.1f, fix);
         }
         private void ZoomOut()
         {
@@ -212,9 +241,9 @@ namespace PicPreview
         private void MainForm_MouseWheel(object sender, MouseEventArgs e)
         {
             if (e.Delta > 0)
-                ZoomIn();
+                ZoomIn(e.Location);
             else if (e.Delta < 0)
-                ZoomOut();
+                ZoomOut(e.Location);
         }
 
 
@@ -371,6 +400,7 @@ namespace PicPreview
             }
 
             UpdateControlStates();
+            UpdateTitle();
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
