@@ -94,5 +94,17 @@ namespace PicPreview.Properties {
                 this["WindowHeight"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool CheckFileAssociations {
+            get {
+                return ((bool)(this["CheckFileAssociations"]));
+            }
+            set {
+                this["CheckFileAssociations"] = value;
+            }
+        }
     }
 }

@@ -11,6 +11,14 @@ namespace PicPreview
         [STAThread]
         static void Main()
         {
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length >= 2 && args[1] == "-cmd")
+            {
+                for (int i = 2; i < args.Length; i++)
+                    ExecuteCommand(args[i]);
+                return;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -22,6 +30,17 @@ namespace PicPreview
             }
 
             Application.Run(new MainForm());
+        }
+
+
+        static void ExecuteCommand(string cmd)
+        {
+            if (cmd.StartsWith("CreateProgId"))
+                FileAssociation.CreateProgId(false);
+            else if (cmd.StartsWith("DeleteProgId"))
+                FileAssociation.DeleteProgId(false);
+            else if (cmd.StartsWith("Associate:"))
+                FileAssociation.Associate(cmd.Substring(10), false);
         }
     }
 }

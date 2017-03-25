@@ -33,6 +33,14 @@ namespace PicPreview
                 this.WindowState = FormWindowState.Maximized;
             }
 
+            if (Properties.Settings.Default.CheckFileAssociations)
+            {
+                //TODO check file associations and show window
+
+                Properties.Settings.Default.CheckFileAssociations = false;
+                Properties.Settings.Default.Save();
+            }
+
             string[] args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
                 LoadImage(args[1]);
@@ -163,14 +171,16 @@ namespace PicPreview
 
         private ImageZoomModes zoomMode = ImageZoomModes.Manual;
         private readonly float[] ZoomLevels = new float[] { 0.001f, 0.0025f, 0.005f, 0.0075f, 0.01f, 0.025f, 0.05f, 0.075f, 0.1f, 0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 16f, 18f, 20f };
+        private float MinZoom { get { return ZoomLevels[0]; } }
+        private float MaxZoom { get { return ZoomLevels[ZoomLevels.Length - 1]; } }
         private float zoom;
         private int offsetX, offsetY;
 
         private bool dragging = false;
         private Point lastDragPos;
 
-        private bool CanZoomIn { get { return true; } }
-        private bool CanZoomOut { get { return (this.zoom > 1 || this.CanDragImage); } }
+        private bool CanZoomIn { get { return (this.imageCollection.IsImageLoaded && this.zoom < MaxZoom); } }
+        private bool CanZoomOut { get { return (this.imageCollection.IsImageLoaded && (this.zoom > 1 || this.CanDragImage)); } }
 
         private void SetZoomMode(ImageZoomModes mode)
         {
@@ -268,6 +278,9 @@ namespace PicPreview
         {
             get
             {
+                if (!this.imageCollection.IsImageLoaded)
+                    return false;
+
                 Rectangle imageRect = GetImageRect();
                 Size zoomedSize = GetZoomedImageSize();
                 return (zoomedSize.Width > imageRect.Width || zoomedSize.Height > imageRect.Height);

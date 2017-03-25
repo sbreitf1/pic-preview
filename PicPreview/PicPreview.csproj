@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileAssociation.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageCollection.cs" />
     <Compile Include="MainForm.cs">
