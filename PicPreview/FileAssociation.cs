@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
-using Microsoft.Win32;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace PicPreview
 {
@@ -18,6 +17,12 @@ namespace PicPreview
         private const int SHCNE_ASSOCCHANGED = 0x8000000;
         private const int SHCNF_IDLIST = 0;
         private const int SHCNF_FLUSHNOWAIT = 0x2000;
+
+
+        static FileAssociation()
+        {
+            SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSHNOWAIT, IntPtr.Zero, IntPtr.Zero);
+        }
 
 
         public static bool ProgIdExists()
@@ -45,7 +50,7 @@ namespace PicPreview
                 {
                     RegistryKey key = Registry.ClassesRoot.CreateSubKey(ProgId);
                     key.SetValue("", "PicPreview");
-                    key.SetValue("FriendlyTypeName", "BILD!");
+                    //key.SetValue("FriendlyTypeName", "BILD!");
 
                     RegistryKey defaultIconKey = key.CreateSubKey("DefaultIcon");
                     defaultIconKey.SetValue("", @"%SystemRoot%\System32\imageres.dll,-72");
@@ -76,6 +81,95 @@ namespace PicPreview
                 else
                 {
                     Registry.ClassesRoot.DeleteSubKeyTree(ProgId);
+                    return true;
+                }
+            }
+            catch { return false; }
+        }
+
+
+        public static bool ApplicationIsRegistered()
+        {
+            try
+            {
+                RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Clients\Media\PicPreview");
+                bool result = (key != null);
+                if (key != null)
+                    key.Close();
+                return result;
+            }
+            catch { return false; }
+        }
+        public static bool RegisterApplication(bool elevate = true)
+        {
+            try
+            {
+                if (elevate)
+                {
+                    RunCommands("CreateProgId", "RegisterApplication");
+                    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSHNOWAIT, IntPtr.Zero, IntPtr.Zero);
+                    return ApplicationIsRegistered();
+                }
+                else
+                {
+                    SetupAppRegistration();
+                    SetupExecutableRegistration();
+                    return true;
+                }
+            }
+            catch { return false; }
+        }
+        private static void SetupAppRegistration()
+        {
+            RegistryKey key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Clients\Media\PicPreview");
+            key.SetValue("", "PicPreview");
+
+            RegistryKey capabilitiesKey = key.CreateSubKey("Capabilities");
+            capabilitiesKey.SetValue("ApplicationDescription", "Advanced preview tool for images and animations.");
+            capabilitiesKey.SetValue("ApplicationName", "PicPreview");
+
+            RegistryKey assocKey = capabilitiesKey.CreateSubKey("FileAssociations");
+            assocKey.SetValue(".jpg", ProgId);
+            assocKey.SetValue(".jpeg", ProgId);
+
+            RegistryKey installInfoKey = key.CreateSubKey("InstallInfo");
+            installInfoKey.SetValue("ReinstallCommand", "\"C:\\Program Files (x86)\\VideoLAN\\VLC\\spad-setup.exe\" /Reinstall /S");
+            installInfoKey.SetValue("ShowIconsCommand", "\"C:\\Program Files (x86)\\VideoLAN\\VLC\\spad-setup.exe\" /ShowIcons /S");
+            installInfoKey.SetValue("HideIconsCommand", "\"C:\\Program Files (x86)\\VideoLAN\\VLC\\spad-setup.exe\" /HideIcons /S");
+            installInfoKey.SetValue("IconsVisible", 1);
+
+            RegistryKey appsKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\RegisteredApplications");
+            appsKey.SetValue("PicPreview", @"SOFTWARE\Clients\Media\PicPreview\Capabilities");
+        }
+        private static void SetupExecutableRegistration()
+        {
+            RegistryKey key = Registry.ClassesRoot.CreateSubKey(@"Applications\" + Path.GetFileName(Environment.GetCommandLineArgs()[0]));
+
+            RegistryKey shellKey = key.CreateSubKey("shell");
+            shellKey.SetValue("", "open");
+            RegistryKey openKey = shellKey.CreateSubKey("open");
+            openKey.SetValue("", "Vorschau");
+            RegistryKey previewCommandKey = openKey.CreateSubKey("command");
+
+            RegistryKey typesKey = key.CreateSubKey("SupportedTypes");
+            typesKey.SetValue(".jpg", ProgId);
+            typesKey.SetValue(".jpeg", ProgId);
+            
+            previewCommandKey.SetValue("", "\"" + Environment.GetCommandLineArgs()[0] + "\" \"%1\"");
+        }
+        public static bool UnregisterApplication(bool elevate = true)
+        {
+            try
+            {
+                if (elevate)
+                {
+                    RunCommands("UnregisterApplication");
+                    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSHNOWAIT, IntPtr.Zero, IntPtr.Zero);
+                    return !ApplicationIsRegistered();
+                }
+                else
+                {
+                    Registry.LocalMachine.DeleteSubKeyTree(@"SOFTWARE\Clients\Media\PicPreview");
                     return true;
                 }
             }
@@ -122,8 +216,9 @@ namespace PicPreview
 
                 if (elevate)
                 {
-                    List<string> commands = new List<string>(1 + extensions.Length);
+                    List<string> commands = new List<string>(2 + extensions.Length);
                     commands.Add("CreateProgId");
+                    commands.Add("RegisterApplication");
                     foreach (string ext in extensions)
                         commands.Add("Associate:" + ext);
                     RunCommands(commands.ToArray());

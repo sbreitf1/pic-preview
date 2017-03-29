@@ -115,5 +115,11 @@
   <ItemGroup>
     <None Include="Resources\Refresh_32x_flipped.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Pause_32x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Run_32x.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

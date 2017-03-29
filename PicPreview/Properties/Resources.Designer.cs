@@ -123,6 +123,16 @@ namespace PicPreview.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Pause_32x {
+            get {
+                object obj = ResourceManager.GetObject("Pause_32x", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Refresh_32x {
             get {
                 object obj = ResourceManager.GetObject("Refresh_32x", resourceCulture);
@@ -156,6 +166,16 @@ namespace PicPreview.Properties {
         internal static System.Drawing.Bitmap resource_32xMD {
             get {
                 object obj = ResourceManager.GetObject("resource_32xMD", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Run_32x {
+            get {
+                object obj = ResourceManager.GetObject("Run_32x", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

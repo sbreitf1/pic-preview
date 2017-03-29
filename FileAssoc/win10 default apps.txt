@@ -1,0 +1,6 @@
+%windir%\system32\control.exe /name Microsoft.DefaultPrograms
+
+%windir%\system32\control.exe /name Microsoft.DefaultPrograms /page pageDefaultProgram
+
+%windir%\system32\control.exe /name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings?pszAppName=PicPreview
+

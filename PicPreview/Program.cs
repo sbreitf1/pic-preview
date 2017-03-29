@@ -39,6 +39,10 @@ namespace PicPreview
                 FileAssociation.CreateProgId(false);
             else if (cmd.StartsWith("DeleteProgId"))
                 FileAssociation.DeleteProgId(false);
+            else if (cmd.StartsWith("RegisterApplication"))
+                FileAssociation.RegisterApplication(false);
+            else if (cmd.StartsWith("UnregisterApplication"))
+                FileAssociation.UnregisterApplication(false);
             else if (cmd.StartsWith("Associate:"))
                 FileAssociation.Associate(cmd.Substring(10), false);
         }

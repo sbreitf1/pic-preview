@@ -17,6 +17,8 @@ namespace PicPreview
             this.textFont = new Font(this.Font.FontFamily, this.Font.Size * 2);
 
             this.imageCollection = new ImageCollection();
+
+            //FileAssociation.Associate(".jpg");
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
@@ -162,6 +164,7 @@ namespace PicPreview
                     this.imageCollection.CurrentImage.StartAnimation();
                 else
                     this.imageCollection.CurrentImage.PauseAnimation();
+                btnAnimation.Image = (this.imageCollection.CurrentImage.AnimationPaused ? Properties.Resources.Run_32x : Properties.Resources.Pause_32x);
             }
         }
 
@@ -193,7 +196,9 @@ namespace PicPreview
             tsbPrevious.Enabled = this.imageCollection.CanSwipeImages;
             tsbNext.Enabled = this.imageCollection.CanSwipeImages;
             tsbImageEffects.Enabled = false;
-            tsbSave.Enabled = this.imageCollection.IsImageLoaded;
+            tsbRotateCW.Enabled = false;
+            tsbRotateCCW.Enabled = false;
+            tsbSave.Enabled = false;
             pnlAnimation.Visible = (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation);
 
             // only change when really needed, so the resizing-cursor doesn't get unnecessarily changed
@@ -389,6 +394,7 @@ namespace PicPreview
                         tbrImageFrame.Value = 0;
                         this.noAnimationUpdate = false;
 
+                        btnAnimation.Image = Properties.Resources.Pause_32x;
                         this.imageCollection.CurrentImage.FrameChanged += CurrentImage_RequestRedraw;
                         this.imageCollection.CurrentImage.StartAnimation();
                     }

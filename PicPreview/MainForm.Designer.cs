@@ -35,25 +35,25 @@
             this.toolStripStatusLabel4 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.pnlAnimation = new System.Windows.Forms.Panel();
-            this.tbrImageFrame = new System.Windows.Forms.TrackBar();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.btnAnimation = new System.Windows.Forms.Button();
+            this.tbrImageFrame = new System.Windows.Forms.TrackBar();
             this.tsbOptions = new System.Windows.Forms.ToolStripSplitButton();
             this.tsbZoomModeFit = new System.Windows.Forms.ToolStripSplitButton();
             this.tsbZoomModeOriginal = new System.Windows.Forms.ToolStripSplitButton();
             this.tsbPrevious = new System.Windows.Forms.ToolStripSplitButton();
             this.tsbNext = new System.Windows.Forms.ToolStripSplitButton();
+            this.tsbRotateCCW = new System.Windows.Forms.ToolStripSplitButton();
+            this.tsbRotateCW = new System.Windows.Forms.ToolStripSplitButton();
             this.tsbImageEffects = new System.Windows.Forms.ToolStripSplitButton();
             this.tsbSave = new System.Windows.Forms.ToolStripSplitButton();
-            this.tsbRotateCW = new System.Windows.Forms.ToolStripSplitButton();
-            this.tsbRotateCCW = new System.Windows.Forms.ToolStripSplitButton();
             this.statusStrip.SuspendLayout();
             this.pnlAnimation.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.tbrImageFrame)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.tbrImageFrame)).BeginInit();
             this.SuspendLayout();
             // 
             // statusStrip
@@ -122,18 +122,6 @@
             this.pnlAnimation.Size = new System.Drawing.Size(774, 49);
             this.pnlAnimation.TabIndex = 1;
             // 
-            // tbrImageFrame
-            // 
-            this.tbrImageFrame.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbrImageFrame.Location = new System.Drawing.Point(0, 0);
-            this.tbrImageFrame.Name = "tbrImageFrame";
-            this.tbrImageFrame.Size = new System.Drawing.Size(716, 45);
-            this.tbrImageFrame.TabIndex = 0;
-            this.tbrImageFrame.TickStyle = System.Windows.Forms.TickStyle.Both;
-            this.tbrImageFrame.Scroll += new System.EventHandler(this.tbrImageFrame_Scroll);
-            this.tbrImageFrame.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbrImageFrame_MouseDown);
-            this.tbrImageFrame.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tbrImageFrame_MouseUp);
-            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -156,13 +144,25 @@
             // btnAnimation
             // 
             this.btnAnimation.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnAnimation.Image = global::PicPreview.Properties.Resources.Run_32x;
             this.btnAnimation.Location = new System.Drawing.Point(0, 0);
             this.btnAnimation.Name = "btnAnimation";
             this.btnAnimation.Size = new System.Drawing.Size(54, 49);
             this.btnAnimation.TabIndex = 0;
-            this.btnAnimation.Text = "button1";
             this.btnAnimation.UseVisualStyleBackColor = true;
             this.btnAnimation.Click += new System.EventHandler(this.btnAnimation_Click);
+            // 
+            // tbrImageFrame
+            // 
+            this.tbrImageFrame.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbrImageFrame.Location = new System.Drawing.Point(0, 0);
+            this.tbrImageFrame.Name = "tbrImageFrame";
+            this.tbrImageFrame.Size = new System.Drawing.Size(716, 45);
+            this.tbrImageFrame.TabIndex = 0;
+            this.tbrImageFrame.TickStyle = System.Windows.Forms.TickStyle.Both;
+            this.tbrImageFrame.Scroll += new System.EventHandler(this.tbrImageFrame_Scroll);
+            this.tbrImageFrame.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbrImageFrame_MouseDown);
+            this.tbrImageFrame.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tbrImageFrame_MouseUp);
             // 
             // tsbOptions
             // 
@@ -172,7 +172,7 @@
             this.tsbOptions.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbOptions.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbOptions.Name = "tsbOptions";
-            this.tsbOptions.Size = new System.Drawing.Size(37, 59);
+            this.tsbOptions.Size = new System.Drawing.Size(37, 36);
             this.tsbOptions.Text = "toolStripSplitButton1";
             this.tsbOptions.ButtonClick += new System.EventHandler(this.tsbOptions_ButtonClick);
             // 
@@ -185,7 +185,7 @@
             this.tsbZoomModeFit.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbZoomModeFit.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbZoomModeFit.Name = "tsbZoomModeFit";
-            this.tsbZoomModeFit.Size = new System.Drawing.Size(37, 59);
+            this.tsbZoomModeFit.Size = new System.Drawing.Size(37, 36);
             this.tsbZoomModeFit.Text = "Fit to Window";
             this.tsbZoomModeFit.ButtonClick += new System.EventHandler(this.tsbZoomModeFit_ButtonClick);
             // 
@@ -198,7 +198,7 @@
             this.tsbZoomModeOriginal.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbZoomModeOriginal.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbZoomModeOriginal.Name = "tsbZoomModeOriginal";
-            this.tsbZoomModeOriginal.Size = new System.Drawing.Size(37, 59);
+            this.tsbZoomModeOriginal.Size = new System.Drawing.Size(37, 36);
             this.tsbZoomModeOriginal.Text = "Original Size";
             this.tsbZoomModeOriginal.ButtonClick += new System.EventHandler(this.tsbZoomModeOriginal_ButtonClick);
             // 
@@ -211,7 +211,7 @@
             this.tsbPrevious.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbPrevious.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbPrevious.Name = "tsbPrevious";
-            this.tsbPrevious.Size = new System.Drawing.Size(37, 59);
+            this.tsbPrevious.Size = new System.Drawing.Size(37, 36);
             this.tsbPrevious.Text = "toolStripSplitButton1";
             this.tsbPrevious.ButtonClick += new System.EventHandler(this.tsbPrevious_ButtonClick);
             // 
@@ -224,9 +224,33 @@
             this.tsbNext.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbNext.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbNext.Name = "tsbNext";
-            this.tsbNext.Size = new System.Drawing.Size(37, 59);
+            this.tsbNext.Size = new System.Drawing.Size(37, 36);
             this.tsbNext.Text = "toolStripSplitButton1";
             this.tsbNext.ButtonClick += new System.EventHandler(this.tsbNext_ButtonClick);
+            // 
+            // tsbRotateCCW
+            // 
+            this.tsbRotateCCW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbRotateCCW.DropDownButtonWidth = 0;
+            this.tsbRotateCCW.Enabled = false;
+            this.tsbRotateCCW.Image = global::PicPreview.Properties.Resources.Refresh_32x_flipped;
+            this.tsbRotateCCW.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.tsbRotateCCW.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbRotateCCW.Name = "tsbRotateCCW";
+            this.tsbRotateCCW.Size = new System.Drawing.Size(37, 36);
+            this.tsbRotateCCW.Text = "toolStripSplitButton1";
+            // 
+            // tsbRotateCW
+            // 
+            this.tsbRotateCW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbRotateCW.DropDownButtonWidth = 0;
+            this.tsbRotateCW.Enabled = false;
+            this.tsbRotateCW.Image = global::PicPreview.Properties.Resources.Refresh_32x;
+            this.tsbRotateCW.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.tsbRotateCW.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbRotateCW.Name = "tsbRotateCW";
+            this.tsbRotateCW.Size = new System.Drawing.Size(37, 36);
+            this.tsbRotateCW.Text = "toolStripSplitButton1";
             // 
             // tsbImageEffects
             // 
@@ -237,7 +261,7 @@
             this.tsbImageEffects.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbImageEffects.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbImageEffects.Name = "tsbImageEffects";
-            this.tsbImageEffects.Size = new System.Drawing.Size(57, 59);
+            this.tsbImageEffects.Size = new System.Drawing.Size(57, 36);
             this.tsbImageEffects.Text = "toolStripSplitButton1";
             // 
             // tsbSave
@@ -249,32 +273,8 @@
             this.tsbSave.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSave.Name = "tsbSave";
-            this.tsbSave.Size = new System.Drawing.Size(37, 59);
+            this.tsbSave.Size = new System.Drawing.Size(37, 36);
             this.tsbSave.Text = "toolStripSplitButton1";
-            // 
-            // tsbRotateCW
-            // 
-            this.tsbRotateCW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbRotateCW.DropDownButtonWidth = 0;
-            this.tsbRotateCW.Enabled = false;
-            this.tsbRotateCW.Image = global::PicPreview.Properties.Resources.Refresh_32x;
-            this.tsbRotateCW.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-            this.tsbRotateCW.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbRotateCW.Name = "tsbRotateCW";
-            this.tsbRotateCW.Size = new System.Drawing.Size(37, 59);
-            this.tsbRotateCW.Text = "toolStripSplitButton1";
-            // 
-            // tsbRotateCCW
-            // 
-            this.tsbRotateCCW.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbRotateCCW.DropDownButtonWidth = 0;
-            this.tsbRotateCCW.Enabled = false;
-            this.tsbRotateCCW.Image = global::PicPreview.Properties.Resources.Refresh_32x_flipped;
-            this.tsbRotateCCW.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-            this.tsbRotateCCW.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbRotateCCW.Name = "tsbRotateCCW";
-            this.tsbRotateCCW.Size = new System.Drawing.Size(37, 59);
-            this.tsbRotateCCW.Text = "toolStripSplitButton1";
             // 
             // MainForm
             // 
@@ -302,12 +302,12 @@
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.pnlAnimation.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.tbrImageFrame)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.tbrImageFrame)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
