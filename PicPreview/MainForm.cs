@@ -68,6 +68,10 @@ namespace PicPreview
         #endregion
 
         #region Generic UI
+        bool noAnimationUpdate = false;
+        bool wasAnimationPaused;
+
+
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -123,6 +127,45 @@ namespace PicPreview
         }
 
 
+        private void tbrImageFrame_Scroll(object sender, EventArgs e)
+        {
+            if (this.noAnimationUpdate)
+                return;
+
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+                this.imageCollection.CurrentImage.CurrentFrame = tbrImageFrame.Value;
+        }
+
+        private void tbrImageFrame_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            {
+                this.wasAnimationPaused = this.imageCollection.CurrentImage.AnimationPaused;
+                this.imageCollection.CurrentImage.PauseAnimation();
+            }
+        }
+
+        private void tbrImageFrame_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            {
+                if (!this.wasAnimationPaused)
+                    this.imageCollection.CurrentImage.StartAnimation();
+            }
+        }
+
+        private void btnAnimation_Click(object sender, EventArgs e)
+        {
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            {
+                if (this.imageCollection.CurrentImage.AnimationPaused)
+                    this.imageCollection.CurrentImage.StartAnimation();
+                else
+                    this.imageCollection.CurrentImage.PauseAnimation();
+            }
+        }
+
+
         private void tsbOptions_ButtonClick(object sender, EventArgs e)
         {
 
@@ -151,6 +194,7 @@ namespace PicPreview
             tsbNext.Enabled = this.imageCollection.CanSwipeImages;
             tsbImageEffects.Enabled = false;
             tsbSave.Enabled = this.imageCollection.IsImageLoaded;
+            pnlAnimation.Visible = (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation);
 
             // only change when really needed, so the resizing-cursor doesn't get unnecessarily changed
             Cursor targetCursor = (this.CanDragImage ? Cursors.SizeAll : Cursors.Default);
@@ -338,9 +382,14 @@ namespace PicPreview
                 {
                     this.imageCollection.SelectImage(file);
 
-                    if (this.imageCollection.CurrentImage.HasAnimation)
+                    if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
                     {
-                        this.imageCollection.CurrentImage.RequestRedraw += CurrentImage_RequestRedraw;
+                        this.noAnimationUpdate = true;
+                        tbrImageFrame.Maximum = (this.imageCollection.CurrentImage.FrameCount - 1);
+                        tbrImageFrame.Value = 0;
+                        this.noAnimationUpdate = false;
+
+                        this.imageCollection.CurrentImage.FrameChanged += CurrentImage_RequestRedraw;
                         this.imageCollection.CurrentImage.StartAnimation();
                     }
 
@@ -386,7 +435,10 @@ namespace PicPreview
 
         private Rectangle GetImageRect()
         {
-            return new Rectangle(1, 1, this.ClientSize.Width - 2, this.ClientSize.Height - statusStrip.Height - 2);
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+                return new Rectangle(1, 1, this.ClientSize.Width - 2, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 2);
+            else
+                return new Rectangle(1, 1, this.ClientSize.Width - 2, this.ClientSize.Height - statusStrip.Height - 2);
         }
 
         private Size GetZoomedImageSize()
@@ -506,11 +558,22 @@ namespace PicPreview
             RedrawImage();
         }
 
-        private void CurrentImage_RequestRedraw(Image sender)
+        private void CurrentImage_RequestRedraw(Image sender, bool isUserChange)
         {
             this.Invoke(new Action(() =>
             {
+                // maybe the image has changed but the event handler is still active
+                if (sender != this.imageCollection.CurrentImage)
+                    return;
+
                 RedrawImage();
+
+                if(!isUserChange)
+                {
+                    this.noAnimationUpdate = true;
+                    tbrImageFrame.Value = Math.Max(tbrImageFrame.Minimum, Math.Min(tbrImageFrame.Maximum, sender.CurrentFrame));
+                    this.noAnimationUpdate = false;
+                }
             }));
         }
 
