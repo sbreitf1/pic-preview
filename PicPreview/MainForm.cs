@@ -23,6 +23,7 @@ namespace PicPreview
         {
             if (Properties.Settings.Default.WindowX > -1000000 && Properties.Settings.Default.WindowY > -1000000 && Properties.Settings.Default.WindowWidth > 0 && Properties.Settings.Default.WindowHeight > 0)
             {
+                //TODO check if in screen
                 this.Left = Properties.Settings.Default.WindowX;
                 this.Top = Properties.Settings.Default.WindowY;
                 this.Width = Properties.Settings.Default.WindowWidth;
@@ -133,7 +134,7 @@ namespace PicPreview
             if (this.imageCollection.IsFileSelected)
             {
                 //if (Math.Abs(1 - this.zoom) <= 0.001)
-                if (this.zoom == 1)
+                if (!this.imageCollection.IsImageLoaded || (this.zoom == 1))
                     this.Text = this.imageCollection.CurrentFileName + " - PicPreview";
                 else
                     this.Text = this.imageCollection.CurrentFileName + " (" + Math.Round(100 * this.zoom) + "%) - PicPreview";
@@ -337,6 +338,12 @@ namespace PicPreview
                 {
                     this.imageCollection.SelectImage(file);
 
+                    if (this.imageCollection.CurrentImage.HasAnimation)
+                    {
+                        this.imageCollection.CurrentImage.RequestRedraw += CurrentImage_RequestRedraw;
+                        this.imageCollection.CurrentImage.StartAnimation();
+                    }
+
                     // paint will render exceptions instead of images, when it is set
                     this.loadException = null;
                 }
@@ -384,7 +391,7 @@ namespace PicPreview
 
         private Size GetZoomedImageSize()
         {
-            return new Size((int)(this.zoom * this.imageCollection.CurrentImage.Bitmap.Width), (int)(this.zoom * this.imageCollection.CurrentImage.Bitmap.Height));
+            return new Size((int)(this.zoom * this.imageCollection.CurrentImage.Width), (int)(this.zoom * this.imageCollection.CurrentImage.Height));
         }
 
         private void UpdateViewParameters()
@@ -392,10 +399,10 @@ namespace PicPreview
             Rectangle imageRect = GetImageRect();
             if (this.zoomMode == ImageZoomModes.Fill)
             {
-                if (this.imageCollection.CurrentImage.Bitmap.Width <= imageRect.Width && this.imageCollection.CurrentImage.Bitmap.Height <= imageRect.Height)
+                if (this.imageCollection.CurrentImage.Width <= imageRect.Width && this.imageCollection.CurrentImage.Height <= imageRect.Height)
                     this.zoom = 1;
                 else
-                    this.zoom = Math.Min((float)imageRect.Width / (float)this.imageCollection.CurrentImage.Bitmap.Width, (float)imageRect.Height / (float)this.imageCollection.CurrentImage.Bitmap.Height);
+                    this.zoom = Math.Min((float)imageRect.Width / (float)this.imageCollection.CurrentImage.Width, (float)imageRect.Height / (float)this.imageCollection.CurrentImage.Height);
                 Size zoomedSize = GetZoomedImageSize();
                 this.offsetX = (imageRect.Width - zoomedSize.Width) / 2;
                 this.offsetY = (imageRect.Height - zoomedSize.Height) / 2;
@@ -403,8 +410,8 @@ namespace PicPreview
             else if (this.zoomMode == ImageZoomModes.Original)
             {
                 this.zoom = 1;
-                this.offsetX = (imageRect.Width - this.imageCollection.CurrentImage.Bitmap.Width) / 2;
-                this.offsetY = (imageRect.Height - this.imageCollection.CurrentImage.Bitmap.Height) / 2;
+                this.offsetX = (imageRect.Width - this.imageCollection.CurrentImage.Width) / 2;
+                this.offsetY = (imageRect.Height - this.imageCollection.CurrentImage.Height) / 2;
             }
             else
             {
@@ -458,14 +465,14 @@ namespace PicPreview
                         }
                         else if (this.zoom < 1)
                         {
-                            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Bitmap.Width, this.imageCollection.CurrentImage.Bitmap.Height);
+                            e.Graphics.InterpolationMode = (this.zoom < 0.5 ? InterpolationMode.HighQualityBicubic : (this.zoom < 0.75 ? InterpolationMode.Bilinear : InterpolationMode.NearestNeighbor));
+                            src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
                             dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
                         else
                         {
                             e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-                            src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Bitmap.Width, this.imageCollection.CurrentImage.Bitmap.Height);
+                            src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
                             dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
 
@@ -473,7 +480,8 @@ namespace PicPreview
                         dst.X += imageRect.X;
                         dst.Y += imageRect.Y;
                         // draw
-                        e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
+                        lock (this.imageCollection.CurrentImage.Bitmap)
+                            e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
                         e.Graphics.DrawRectangle(Pens.Black, dst);
                     }
                 }
@@ -496,6 +504,14 @@ namespace PicPreview
         private void MainForm_Resize(object sender, EventArgs e)
         {
             RedrawImage();
+        }
+
+        private void CurrentImage_RequestRedraw(Image sender)
+        {
+            this.Invoke(new Action(() =>
+            {
+                RedrawImage();
+            }));
         }
 
         private void PrintCenteredString(Graphics g, string str)
