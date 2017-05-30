@@ -17,6 +17,8 @@ namespace PicPreview
             this.textFont = new Font(this.Font.FontFamily, this.Font.Size * 2);
 
             this.imageCollection = new ImageCollection();
+            this.imageCollection.ImageReady += ImageCollection_ImageReady;
+            this.imageCollection.ImageLoadingError += ImageCollection_ImageLoadingError;
 
             //FileAssociation.Associate(".jpg");
         }
@@ -70,21 +72,22 @@ namespace PicPreview
         #endregion
 
         #region Generic UI
-        bool noAnimationUpdate = false;
-        bool wasAnimationPaused;
-
-
-        private void MainForm_KeyDown(object sender, KeyEventArgs e)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            switch (e.KeyCode)
+            Console.WriteLine(keyData);
+            switch (keyData)
             {
                 case Keys.Left:
                     LoadPreviousImage();
-                    break;
+                    return true;
                 case Keys.Right:
                     LoadNextImage();
-                    break;
+                    return true;
+                case Keys.Space:
+                    btnAnimation.PerformClick();
+                    return true;
             }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
 
@@ -129,44 +132,6 @@ namespace PicPreview
         }
 
 
-        private void tbrImageFrame_Scroll(object sender, EventArgs e)
-        {
-            if (this.noAnimationUpdate)
-                return;
-
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-                this.imageCollection.CurrentImage.CurrentFrame = tbrImageFrame.Value;
-        }
-
-        private void tbrImageFrame_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-            {
-                this.wasAnimationPaused = this.imageCollection.CurrentImage.AnimationPaused;
-                this.imageCollection.CurrentImage.PauseAnimation();
-            }
-        }
-
-        private void tbrImageFrame_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-            {
-                if (!this.wasAnimationPaused)
-                    this.imageCollection.CurrentImage.StartAnimation();
-            }
-        }
-
-        private void btnAnimation_Click(object sender, EventArgs e)
-        {
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-            {
-                if (this.imageCollection.CurrentImage.AnimationPaused)
-                    this.imageCollection.CurrentImage.StartAnimation();
-                else
-                    this.imageCollection.CurrentImage.PauseAnimation();
-                btnAnimation.Image = (this.imageCollection.CurrentImage.AnimationPaused ? Properties.Resources.Run_32x : Properties.Resources.Pause_32x);
-            }
-        }
 
 
         private void tsbOptions_ButtonClick(object sender, EventArgs e)
@@ -180,7 +145,7 @@ namespace PicPreview
             if (this.imageCollection.IsFileSelected)
             {
                 //if (Math.Abs(1 - this.zoom) <= 0.001)
-                if (!this.imageCollection.IsImageLoaded || (this.zoom == 1))
+                if (!this.imageCollection.IsImageLoaded || this.imageCollection.IsLoading || (this.zoom == 1))
                     this.Text = this.imageCollection.CurrentFileName + " - PicPreview";
                 else
                     this.Text = this.imageCollection.CurrentFileName + " (" + Math.Round(100 * this.zoom) + "%) - PicPreview";
@@ -371,6 +336,71 @@ namespace PicPreview
         }
         #endregion
 
+        #region Animation Control
+        bool noAnimationUpdate = false;
+        bool wasAnimationPaused;
+
+
+        private void tbrImageFrame_Scroll(object sender, EventArgs e)
+        {
+            if (this.noAnimationUpdate)
+                return;
+
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+                this.imageCollection.CurrentImage.CurrentFrame = tbrImageFrame.Value;
+        }
+
+        private void tbrImageFrame_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            {
+                this.wasAnimationPaused = this.imageCollection.CurrentImage.AnimationPaused;
+                this.imageCollection.CurrentImage.PauseAnimation();
+            }
+        }
+
+        private void tbrImageFrame_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            {
+                if (!this.wasAnimationPaused)
+                    this.imageCollection.CurrentImage.StartAnimation();
+            }
+        }
+
+        private void btnAnimation_Click(object sender, EventArgs e)
+        {
+            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            {
+                if (this.imageCollection.CurrentImage.AnimationPaused)
+                    this.imageCollection.CurrentImage.StartAnimation();
+                else
+                    this.imageCollection.CurrentImage.PauseAnimation();
+                btnAnimation.Image = (this.imageCollection.CurrentImage.AnimationPaused ? Properties.Resources.Run_32x : Properties.Resources.Pause_32x);
+            }
+        }
+
+
+        private void CurrentImage_FrameChanged(Image sender, bool isUserChange)
+        {
+            this.Invoke(new Action(() =>
+            {
+                // maybe the image has changed but the event handler is still active
+                if (sender != this.imageCollection.CurrentImage)
+                    return;
+
+                RedrawImage();
+
+                if (!isUserChange)
+                {
+                    this.noAnimationUpdate = true;
+                    tbrImageFrame.Value = Math.Max(tbrImageFrame.Minimum, Math.Min(tbrImageFrame.Maximum, sender.CurrentFrame));
+                    this.noAnimationUpdate = false;
+                }
+            }));
+        }
+        #endregion
+
         #region Image Loading
         ImageCollection imageCollection;
         private Exception loadException;
@@ -381,44 +411,27 @@ namespace PicPreview
             if (file == null)
                 return;
 
+            bool doRedraw = true;
             try
             {
-                try
-                {
-                    this.imageCollection.SelectImage(file);
+                // paint will render exceptions instead of images, when it is set
+                this.loadException = null;
 
-                    if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-                    {
-                        this.noAnimationUpdate = true;
-                        tbrImageFrame.Maximum = (this.imageCollection.CurrentImage.FrameCount - 1);
-                        tbrImageFrame.Value = 0;
-                        this.noAnimationUpdate = false;
-
-                        btnAnimation.Image = Properties.Resources.Pause_32x;
-                        this.imageCollection.CurrentImage.FrameChanged += CurrentImage_RequestRedraw;
-                        this.imageCollection.CurrentImage.StartAnimation();
-                    }
-
-                    // paint will render exceptions instead of images, when it is set
-                    this.loadException = null;
-                }
-                catch (Exception ex)
-                {
-                    this.loadException = ex;
-                }
-
-                UpdateTitle();
-                if (this.zoomMode == ImageZoomModes.Manual)
-                    SetZoomMode(ImageZoomModes.Fill);
+                LoadImageResults result = this.imageCollection.LoadImage(file);
+                // ImageReady-Event was fired and no redraw is necessary here
+                if (result == LoadImageResults.ImageInCache)
+                    doRedraw = false;
             }
             catch (Exception ex)
             {
                 //TODO log and show error message
-
-                this.loadException = ex;
             }
-            UpdateControlStates();
-            RedrawImage();
+            UpdateTitle();
+            if (doRedraw)
+            {
+                UpdateControlStates();
+                RedrawImage();
+            }
         }
 
         public void LoadPreviousImage()
@@ -431,6 +444,50 @@ namespace PicPreview
         {
             if (this.imageCollection.CanSwipeImages)
                 LoadImage(this.imageCollection.GetNextImage());
+        }
+
+
+        private void ImageCollection_ImageReady(ImageCollection sender)
+        {
+            this.Invoke(new Action(() =>
+            {
+                try
+                {
+                    if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+                    {
+                        this.noAnimationUpdate = true;
+                        tbrImageFrame.Maximum = (this.imageCollection.CurrentImage.FrameCount - 1);
+                        tbrImageFrame.Value = 0;
+                        this.noAnimationUpdate = false;
+
+                        btnAnimation.Image = Properties.Resources.Pause_32x;
+                        this.imageCollection.CurrentImage.FrameChanged += CurrentImage_FrameChanged;
+                        this.imageCollection.CurrentImage.StartAnimation();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.loadException = ex;
+                }
+                
+                UpdateTitle();
+                if (this.zoomMode == ImageZoomModes.Manual)
+                    SetZoomMode(ImageZoomModes.Fill);
+                
+                UpdateControlStates();
+                RedrawImage();
+            }));
+        }
+       
+
+        private void ImageCollection_ImageLoadingError(ImageCollection sender, Exception ex)
+        {
+            this.Invoke(new Action(() =>
+            {
+                this.loadException = ex;
+                UpdateControlStates();
+                RedrawImage();
+            }));
         }
         #endregion
 
@@ -502,7 +559,11 @@ namespace PicPreview
         {
             if (this.imageCollection.IsFileSelected)
             {
-                if (this.imageCollection.IsImageLoaded)
+                if (this.imageCollection.IsLoading)
+                {
+                    PrintCenteredString(e.Graphics, "Loading image...");
+                }
+                else if (this.imageCollection.IsImageLoaded)
                 {
                     // update zoom and offset
                     UpdateViewParameters();
@@ -562,25 +623,6 @@ namespace PicPreview
         private void MainForm_Resize(object sender, EventArgs e)
         {
             RedrawImage();
-        }
-
-        private void CurrentImage_RequestRedraw(Image sender, bool isUserChange)
-        {
-            this.Invoke(new Action(() =>
-            {
-                // maybe the image has changed but the event handler is still active
-                if (sender != this.imageCollection.CurrentImage)
-                    return;
-
-                RedrawImage();
-
-                if(!isUserChange)
-                {
-                    this.noAnimationUpdate = true;
-                    tbrImageFrame.Value = Math.Max(tbrImageFrame.Minimum, Math.Min(tbrImageFrame.Maximum, sender.CurrentFrame));
-                    this.noAnimationUpdate = false;
-                }
-            }));
         }
 
         private void PrintCenteredString(Graphics g, string str)

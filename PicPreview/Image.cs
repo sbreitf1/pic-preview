@@ -45,6 +45,19 @@ namespace PicPreview
                 this.bitmap = null;
             }
         }
+
+        public void Unload()
+        {
+            if (this.hasAnimation)
+                this.StopAnimation();
+            this.FrameChanged = null;
+        }
+
+
+        public long GetMemorySize()
+        {
+            return 4 * this.width * this.height;
+        }
         #endregion
 
         #region Rotation Correction
@@ -202,6 +215,16 @@ namespace PicPreview
             }
         }
 
+        public void StopAnimation()
+        {
+            if (!this.hasAnimation)
+                throw new InvalidOperationException();
+
+            this.animationPaused = true;
+            this.animationThread.Abort();
+            this.animationThread = null;
+        }
+
         public void PauseAnimation()
         {
             if (!this.hasAnimation)
@@ -240,6 +263,7 @@ namespace PicPreview
                         Thread.Sleep(10);
                 }
             }
+            catch (ThreadAbortException) { }
             catch { }
         }
         #endregion
