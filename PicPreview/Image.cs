@@ -8,7 +8,6 @@ namespace PicPreview
 {
     delegate void FrameChangedEventHandler(Image sender, bool isUserChange);
 
-
     class Image : IDisposable
     {
         #region Basic Image Loading and Disposal
@@ -25,6 +24,16 @@ namespace PicPreview
             string extension = Path.GetExtension(file);
             switch (extension.ToLower())
             {
+                case ".webp":
+                    WebP webp = new WebP();
+                    this.bitmap = webp.Load(file);
+                    break;
+
+                case ".tga":
+                    Paloma.TargaImage img = new Paloma.TargaImage(file);
+                    this.bitmap = img.Image;
+                    break;
+
                 default:
                     this.bitmap = (Bitmap)Bitmap.FromFile(file);
                     break;

@@ -54,6 +54,8 @@ namespace PicPreview
             this.imageExtensions.Add(".bmp");
             this.imageExtensions.Add(".gif");
             this.imageExtensions.Add(".tiff");
+            this.imageExtensions.Add(".webp");
+            this.imageExtensions.Add(".tga");
 
             this.cache = new ImageCache(128 * 1024 * 1024);
         }

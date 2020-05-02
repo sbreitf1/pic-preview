@@ -11,6 +11,7 @@ namespace PicPreview
         public MainForm()
         {
             InitializeComponent();
+            this.Icon = Properties.Resources.pic_preview;
             this.MouseWheel += MainForm_MouseWheel;
 
             this.textBrush = Brushes.Black;
@@ -74,7 +75,6 @@ namespace PicPreview
         #region Generic UI
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            Console.WriteLine(keyData);
             switch (keyData)
             {
                 case Keys.Left:
