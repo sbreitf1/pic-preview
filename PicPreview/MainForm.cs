@@ -673,9 +673,9 @@ namespace PicPreview
         private Rectangle GetImageRect()
         {
             if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-                return new Rectangle(1, 1, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 1);
+                return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 1);
             else
-                return new Rectangle(1, 1, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - 1);
+                return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - 1);
         }
 
         private Size GetZoomedImageSize()
@@ -741,8 +741,6 @@ namespace PicPreview
                 {
                     // update zoom and offset
                     UpdateViewParameters();
-
-                    e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
 
                     if (this.zoom > 0)
                     {
@@ -835,10 +833,19 @@ namespace PicPreview
                         }
 
                         // draw
+                        PixelOffsetMode oldPixelOffset = e.Graphics.PixelOffsetMode;
+                        if (zoom > 1)
+                        {
+                            // pixel offset half prevents ugly alignment errors when zooming
+                            e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
+                        }
                         lock (this.imageCollection.CurrentImage.Bitmap)
                             e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
-                        renderHighQualityNextTime = true;
+                        e.Graphics.PixelOffsetMode = oldPixelOffset;
+
                         e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
+
+                        renderHighQualityNextTime = true;
                     }
                 }
                 else
