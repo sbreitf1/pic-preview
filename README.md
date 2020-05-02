@@ -10,7 +10,6 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 
 # Open Features & Issues
 
-- Increase render performance when zooming
 - Select image export quality and other options
 - Config dialog
 - Info dialog for current image properties

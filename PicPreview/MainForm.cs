@@ -673,9 +673,9 @@ namespace PicPreview
         private Rectangle GetImageRect()
         {
             if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-                return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 1);
+                return new Rectangle(1, 1, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 1);
             else
-                return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - 1);
+                return new Rectangle(1, 1, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - 1);
         }
 
         private Size GetZoomedImageSize()
@@ -742,31 +742,43 @@ namespace PicPreview
                     // update zoom and offset
                     UpdateViewParameters();
 
+                    e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
+
                     if (this.zoom > 0)
                     {
                         Rectangle imageRect = GetImageRect();
                         Size zoomedSize = GetZoomedImageSize();
 
-                        Rectangle src, dst;
+                        RectangleF src, dst;
 
                         //TODO partial image rendering for better speed
                         if (this.zoom == 1)
                         {
                             e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-                            src = new Rectangle(0, 0, zoomedSize.Width, zoomedSize.Height);
-                            dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
+                            src = new RectangleF(0, 0, zoomedSize.Width, zoomedSize.Height);
+                            dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
                         else if (this.zoom < 1)
                         {
                             e.Graphics.InterpolationMode = (renderHighQualityNextTime ? InterpolationMode.HighQualityBicubic : InterpolationMode.NearestNeighbor);
-                            src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
-                            dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
+                            src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
+                            dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
                         else
                         {
                             e.Graphics.InterpolationMode = (renderHighQualityNextTime ? InterpolationMode.NearestNeighbor : InterpolationMode.NearestNeighbor);
-                            src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
-                            dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
+                            src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
+                            dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
+                        }
+                        if (zoomedSize.Width > imageRect.Width)
+                        {
+                            src = new RectangleF(-this.offsetX / zoom, src.Y, imageRect.Width / zoom, src.Height);
+                            dst = new RectangleF(0, dst.Y, imageRect.Width, dst.Height);
+                        }
+                        if (zoomedSize.Height > imageRect.Height)
+                        {
+                            src = new RectangleF(src.X, -this.offsetY / zoom, src.Width, imageRect.Height / zoom);
+                            dst = new RectangleF(dst.X, 0, dst.Width, imageRect.Height);
                         }
 
                         // move to target rect
@@ -777,11 +789,16 @@ namespace PicPreview
                         {
                             const int AlphaGridSize = 20;
 
+                            int dstX = (int)dst.X;
+                            int dstY = (int)dst.Y;
+                            int dstWidth = (int)dst.Width;
+                            int dstHeight = (int)dst.Height;
+
                             SmoothingMode oldSmoothingMode = e.Graphics.SmoothingMode;
                             e.Graphics.SmoothingMode = SmoothingMode.None;
                             // render grid for transparency visualization
-                            int xStart = (dst.X / AlphaGridSize) * AlphaGridSize;
-                            int yStart = (dst.Y / AlphaGridSize) * AlphaGridSize;
+                            int xStart = (dstX / AlphaGridSize) * AlphaGridSize;
+                            int yStart = (dstY / AlphaGridSize) * AlphaGridSize;
                             for (int x = xStart; x <= (dst.X + dst.Width); x += AlphaGridSize)
                             {
                                 for (int y = yStart; y <= (dst.Y + dst.Height); y += AlphaGridSize)
@@ -794,21 +811,21 @@ namespace PicPreview
                                     int th = AlphaGridSize;
                                     if (tx < dst.X)
                                     {
-                                        tw -= (dst.X - tx);
-                                        tx = dst.X;
+                                        tw -= (dstX - tx);
+                                        tx = dstX;
                                     }
                                     if (ty < dst.Y)
                                     {
-                                        th -= (dst.Y - ty);
-                                        ty = dst.Y;
+                                        th -= (dstY - ty);
+                                        ty = dstY;
                                     }
-                                    if ((tx + tw) > (dst.X + dst.Width))
+                                    if ((tx + tw) > (dstX + dstWidth))
                                     {
-                                        tw -= (tx + tw) - (dst.X + dst.Width);
+                                        tw -= (tx + tw) - (dstX + dstWidth);
                                     }
-                                    if ((ty + th) > (dst.Y + dst.Height))
+                                    if ((ty + th) > (dstY + dstHeight))
                                     {
-                                        th -= (ty + th) - (dst.Y + dst.Height);
+                                        th -= (ty + th) - (dstY + dstHeight);
                                     }
 
                                     e.Graphics.FillRectangle(brush, tx, ty, tw, th);
@@ -821,7 +838,7 @@ namespace PicPreview
                         lock (this.imageCollection.CurrentImage.Bitmap)
                             e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
                         renderHighQualityNextTime = true;
-                        e.Graphics.DrawRectangle(Pens.Black, dst);
+                        e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
                     }
                 }
                 else
