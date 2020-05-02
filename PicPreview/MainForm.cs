@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using System.IO;
+using System.Drawing.Imaging;
 
 namespace PicPreview
 {
@@ -153,7 +155,6 @@ namespace PicPreview
         {
             if (this.imageCollection.IsFileSelected)
             {
-                //if (Math.Abs(1 - this.zoom) <= 0.001)
                 if (!this.imageCollection.IsImageLoaded || this.imageCollection.IsLoading || (this.zoom == 1))
                     this.Text = this.imageCollection.CurrentFileName + " - PicPreview";
                 else
@@ -172,7 +173,7 @@ namespace PicPreview
             tsbImageEffects.Enabled = false;
             tsbRotateCW.Enabled = false;
             tsbRotateCCW.Enabled = false;
-            tsbSave.Enabled = false;
+            tsbSave.Enabled = (this.imageCollection.IsImageLoaded);
             pnlAnimation.Visible = (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation);
 
             // only change when really needed, so the resizing-cursor doesn't get unnecessarily changed
@@ -497,6 +498,147 @@ namespace PicPreview
                 UpdateControlStates();
                 RedrawImage();
             }));
+        }
+        #endregion
+
+        #region Image Exporting
+        private void tsbSave_ButtonClick(object sender, EventArgs e)
+        {
+            if (this.imageCollection.CurrentImage.HasAnimation)
+            {
+                if (MessageBox.Show("Only the currently visible frame will be saved from the animated image.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.InitialDirectory = this.imageCollection.CurrentDirectory;
+            dialog.FileName = this.imageCollection.CurrentFileName;
+            dialog.Filter = "PNG|*.png|JPEG|*.jpg;*.jpeg|WEBP|*.webp|Bitmap|*.bmp|GIF|*.gif";
+            string ext = Path.GetExtension(this.imageCollection.CurrentFileName);
+            switch (ext.ToLower())
+            {
+                case ".png":
+                    dialog.FilterIndex = 1;
+                    break;
+
+                case ".jpg":
+                case ".jpeg":
+                    dialog.FilterIndex = 2;
+                    break;
+
+                case ".webp":
+                    dialog.FilterIndex = 3;
+                    break;
+
+                case ".bmp":
+                    dialog.FilterIndex = 4;
+                    break;
+
+                case ".gif":
+                    dialog.FilterIndex = 5;
+                    break;
+
+                default:
+                    dialog.FileName = this.imageCollection.CurrentFileName.Substring(0, this.imageCollection.CurrentFileName.Length - ext.Length) + ".png";
+                    dialog.FilterIndex = 1;
+                    break;
+            }
+            dialog.AddExtension = true;
+            dialog.OverwritePrompt = true;
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    string newExt = Path.GetExtension(dialog.FileName);
+                    switch (newExt.ToLower())
+                    {
+                        case ".png":
+                            ExportPNG(dialog.FileName);
+                            break;
+
+                        case ".jpg":
+                        case ".jpeg":
+                            ExportJPG(dialog.FileName);
+                            break;
+
+                        case ".webp":
+                            ExportWEBP(dialog.FileName);
+                            break;
+
+                        case ".bmp":
+                            ExportBMP(dialog.FileName);
+                            break;
+
+                        case ".gif":
+                            ExportGIF(dialog.FileName);
+                            break;
+
+                        default:
+                            MessageBox.Show("Unsupported export format.", "Save Image", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Export failed: " + ex.Message, "Save Image", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void ExportPNG(string file)
+        {
+            using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
+            {
+                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Png);
+            }
+        }
+
+        private void ExportJPG(string file)
+        {
+            using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
+            {
+                //TODO show compression options
+                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Jpeg);
+            }
+        }
+
+        private void ExportWEBP(string file)
+        {
+            Bitmap b = this.imageCollection.CurrentImage.Bitmap;
+            bool isClonedImage = false;
+            if (b.PixelFormat != PixelFormat.Format24bppRgb && b.PixelFormat != PixelFormat.Format32bppArgb)
+            {
+                // need to change pixel format for webp encoder
+                b = this.imageCollection.CurrentImage.Bitmap.Clone(new Rectangle(0, 0, b.Width, b.Height), PixelFormat.Format32bppArgb);
+                isClonedImage = true;
+            }
+
+            WebP webp = new WebP();
+            //TODO show compression options
+            webp.Save(b, file, 75);
+
+            if(isClonedImage)
+            {
+                b.Dispose();
+            }
+        }
+
+        private void ExportBMP(string file)
+        {
+            using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
+            {
+                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Bmp);
+            }
+        }
+
+        private void ExportGIF(string file)
+        {
+            using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
+            {
+                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Gif);
+            }
         }
         #endregion
 

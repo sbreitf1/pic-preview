@@ -218,6 +218,7 @@
             this.tsbSave.Name = "tsbSave";
             this.tsbSave.Size = new System.Drawing.Size(37, 59);
             this.tsbSave.Text = "toolStripSplitButton1";
+            this.tsbSave.ButtonClick += new System.EventHandler(this.tsbSave_ButtonClick);
             // 
             // toolStripStatusLabel2
             // 
