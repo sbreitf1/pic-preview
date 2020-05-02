@@ -18,6 +18,9 @@ namespace PicPreview
         protected int height;
         public int Height { get { return this.height; } }
 
+        protected bool hasAlphaChannel;
+        public bool HasAlphaChannel { get { return this.hasAlphaChannel; } }
+
 
         public Image(string file)
         {
@@ -42,6 +45,24 @@ namespace PicPreview
             NormalizeImageRotation();
             this.width = this.bitmap.Width;
             this.height = this.bitmap.Height;
+
+            switch (this.bitmap.PixelFormat)
+            {
+                case PixelFormat.Alpha:
+                case PixelFormat.Canonical:
+                case PixelFormat.Format16bppArgb1555:
+                case PixelFormat.Format32bppArgb:
+                case PixelFormat.Format32bppPArgb:
+                case PixelFormat.Format64bppArgb:
+                case PixelFormat.Format64bppPArgb:
+                case PixelFormat.PAlpha:
+                    this.hasAlphaChannel = true;
+                    break;
+
+                default:
+                    this.hasAlphaChannel = false;
+                    break;
+            }
 
             ReadAnimation();
         }

@@ -597,6 +597,12 @@ namespace PicPreview
 
         private void ExportJPG(string file)
         {
+            if (this.imageCollection.CurrentImage.HasAlphaChannel)
+            {
+                if (MessageBox.Show("The alpha transparency channel will be lost when saving in this format.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                    return;
+            }
+
             using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
             {
                 //TODO show compression options
@@ -611,7 +617,8 @@ namespace PicPreview
             if (b.PixelFormat != PixelFormat.Format24bppRgb && b.PixelFormat != PixelFormat.Format32bppArgb)
             {
                 // need to change pixel format for webp encoder
-                b = this.imageCollection.CurrentImage.Bitmap.Clone(new Rectangle(0, 0, b.Width, b.Height), PixelFormat.Format32bppArgb);
+                PixelFormat pf = (this.imageCollection.CurrentImage.HasAlphaChannel ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb);
+                b = this.imageCollection.CurrentImage.Bitmap.Clone(new Rectangle(0, 0, b.Width, b.Height), pf);
                 isClonedImage = true;
             }
 
@@ -627,6 +634,12 @@ namespace PicPreview
 
         private void ExportBMP(string file)
         {
+            if (this.imageCollection.CurrentImage.HasAlphaChannel)
+            {
+                if (MessageBox.Show("The alpha transparency channel will be lost when saving in this format.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                    return;
+            }
+
             using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
             {
                 this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Bmp);
@@ -635,6 +648,12 @@ namespace PicPreview
 
         private void ExportGIF(string file)
         {
+            if (this.imageCollection.CurrentImage.HasAlphaChannel)
+            {
+                if (MessageBox.Show("The alpha transparency channel will be lost when saving in this format.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                    return;
+            }
+
             using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
             {
                 this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Gif);
@@ -650,9 +669,9 @@ namespace PicPreview
         private Rectangle GetImageRect()
         {
             if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-                return new Rectangle(1, 1, this.ClientSize.Width - 2, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 2);
+                return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 1);
             else
-                return new Rectangle(1, 1, this.ClientSize.Width - 2, this.ClientSize.Height - statusStrip.Height - 2);
+                return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - 1);
         }
 
         private Size GetZoomedImageSize()
@@ -749,6 +768,51 @@ namespace PicPreview
                         // move to target rect
                         dst.X += imageRect.X;
                         dst.Y += imageRect.Y;
+
+                        if (this.imageCollection.CurrentImage.HasAlphaChannel)
+                        {
+                            const int AlphaGridSize = 20;
+
+                            SmoothingMode oldSmoothingMode = e.Graphics.SmoothingMode;
+                            e.Graphics.SmoothingMode = SmoothingMode.None;
+                            // render grid for transparency visualization
+                            int xStart = (dst.X / AlphaGridSize) * AlphaGridSize;
+                            int yStart = (dst.Y / AlphaGridSize) * AlphaGridSize;
+                            for (int x = xStart; x <= (dst.X + dst.Width); x += AlphaGridSize)
+                            {
+                                for (int y = yStart; y <= (dst.Y + dst.Height); y += AlphaGridSize)
+                                {
+                                    Brush brush = ((x / AlphaGridSize + y / AlphaGridSize) % 2 == 0 ? Brushes.LightGray : Brushes.White);
+
+                                    int tx = x;
+                                    int ty = y;
+                                    int tw = AlphaGridSize;
+                                    int th = AlphaGridSize;
+                                    if (tx < dst.X)
+                                    {
+                                        tw -= (dst.X - tx);
+                                        tx = dst.X;
+                                    }
+                                    if (ty < dst.Y)
+                                    {
+                                        th -= (dst.Y - ty);
+                                        ty = dst.Y;
+                                    }
+                                    if ((tx + tw) > (dst.X + dst.Width))
+                                    {
+                                        tw -= (tx + tw) - (dst.X + dst.Width);
+                                    }
+                                    if ((ty + th) > (dst.Y + dst.Height))
+                                    {
+                                        th -= (ty + th) - (dst.Y + dst.Height);
+                                    }
+
+                                    e.Graphics.FillRectangle(brush, tx, ty, tw, th);
+                                }
+                            }
+                            e.Graphics.SmoothingMode = oldSmoothingMode;
+                        }
+
                         // draw
                         lock (this.imageCollection.CurrentImage.Bitmap)
                             e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
