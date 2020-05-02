@@ -211,7 +211,7 @@ namespace PicPreview
         {
             this.zoomMode = mode;
             UpdateControlStates();
-            this.Invalidate();
+            RedrawImage(true);
         }
 
         private void ValidateZoom()
@@ -238,7 +238,7 @@ namespace PicPreview
 
             ValidateZoom();
 
-            this.Invalidate();
+            RedrawImage(false);
         }
 
         private void ZoomIn(Point fix)
@@ -332,7 +332,7 @@ namespace PicPreview
                     this.offsetX += (e.X - this.lastDragPos.X);
                     this.offsetY += (e.Y - this.lastDragPos.Y);
                     this.lastDragPos = e.Location;
-                    this.Invalidate();
+                    RedrawImage(false);
                 }
             }
         }
@@ -399,7 +399,8 @@ namespace PicPreview
                 if (sender != this.imageCollection.CurrentImage)
                     return;
 
-                RedrawImage();
+                //TODO maybe use lower quality for higher frame rates
+                RedrawImage(true);
 
                 if (!isUserChange)
                 {
@@ -440,7 +441,7 @@ namespace PicPreview
             if (doRedraw)
             {
                 UpdateControlStates();
-                RedrawImage();
+                RedrawImage(true);
             }
         }
 
@@ -485,7 +486,7 @@ namespace PicPreview
                     SetZoomMode(ImageZoomModes.Fill);
                 
                 UpdateControlStates();
-                RedrawImage();
+                RedrawImage(true);
             }));
         }
        
@@ -496,7 +497,7 @@ namespace PicPreview
             {
                 this.loadException = ex;
                 UpdateControlStates();
-                RedrawImage();
+                RedrawImage(true);
             }));
         }
         #endregion
@@ -665,6 +666,9 @@ namespace PicPreview
         Brush textBrush;
         Font textFont;
 
+        DateTime hqRedrawAt = DateTime.MaxValue;
+        bool renderHighQualityNextTime = false;
+
 
         private Rectangle GetImageRect()
         {
@@ -676,7 +680,7 @@ namespace PicPreview
 
         private Size GetZoomedImageSize()
         {
-            return new Size((int)(this.zoom * this.imageCollection.CurrentImage.Width), (int)(this.zoom * this.imageCollection.CurrentImage.Height));
+            return new Size((int)Math.Round(this.zoom * this.imageCollection.CurrentImage.Width), (int)Math.Round(this.zoom * this.imageCollection.CurrentImage.Height));
         }
 
         private void UpdateViewParameters()
@@ -754,13 +758,13 @@ namespace PicPreview
                         }
                         else if (this.zoom < 1)
                         {
-                            e.Graphics.InterpolationMode = (this.zoom < 0.5 ? InterpolationMode.HighQualityBicubic : (this.zoom < 0.75 ? InterpolationMode.Bilinear : InterpolationMode.NearestNeighbor));
+                            e.Graphics.InterpolationMode = (renderHighQualityNextTime ? InterpolationMode.HighQualityBicubic : InterpolationMode.NearestNeighbor);
                             src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
                             dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
                         else
                         {
-                            e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+                            e.Graphics.InterpolationMode = (renderHighQualityNextTime ? InterpolationMode.NearestNeighbor : InterpolationMode.NearestNeighbor);
                             src = new Rectangle(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
                             dst = new Rectangle(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
@@ -816,6 +820,7 @@ namespace PicPreview
                         // draw
                         lock (this.imageCollection.CurrentImage.Bitmap)
                             e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
+                        renderHighQualityNextTime = true;
                         e.Graphics.DrawRectangle(Pens.Black, dst);
                     }
                 }
@@ -830,21 +835,35 @@ namespace PicPreview
             }
         }
 
-        private void RedrawImage()
-        {
-            Invalidate();
-        }
-
-        private void MainForm_Resize(object sender, EventArgs e)
-        {
-            RedrawImage();
-        }
-
         private void PrintCenteredString(Graphics g, string str)
         {
             SizeF size = g.MeasureString(str, this.textFont);
             Rectangle imageRect = GetImageRect();
             g.DrawString(str, this.textFont, this.textBrush, imageRect.Left + (int)(imageRect.Width - size.Width) / 2, imageRect.Top + (int)(imageRect.Height - size.Height) / 2);
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            RedrawImage(false);
+        }
+
+        private void RedrawImage(bool hq)
+        {
+            renderHighQualityNextTime = hq;
+            Invalidate();
+            if (!hq)
+            {
+                this.hqRedrawAt = DateTime.Now.AddMilliseconds(250);
+            }
+        }
+
+        private void tmrRedraw_Tick(object sender, EventArgs e)
+        {
+            if (DateTime.Now >= this.hqRedrawAt)
+            {
+                this.hqRedrawAt = DateTime.MaxValue;
+                RedrawImage(true);
+            }
         }
         #endregion
     }

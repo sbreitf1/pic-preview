@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsbOptions = new System.Windows.Forms.ToolStripSplitButton();
@@ -47,6 +48,7 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.btnAnimation = new System.Windows.Forms.Button();
             this.tbrImageFrame = new System.Windows.Forms.TrackBar();
+            this.tmrRedraw = new System.Windows.Forms.Timer(this.components);
             this.statusStrip.SuspendLayout();
             this.pnlAnimation.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -277,6 +279,12 @@
             this.tbrImageFrame.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tbrImageFrame_MouseDown);
             this.tbrImageFrame.MouseUp += new System.Windows.Forms.MouseEventHandler(this.tbrImageFrame_MouseUp);
             // 
+            // tmrRedraw
+            // 
+            this.tmrRedraw.Enabled = true;
+            this.tmrRedraw.Interval = 10;
+            this.tmrRedraw.Tick += new System.EventHandler(this.tmrRedraw_Tick);
+            // 
             // MainForm
             // 
             this.AllowDrop = true;
@@ -335,6 +343,7 @@
         private System.Windows.Forms.Button btnAnimation;
         private System.Windows.Forms.ToolStripSplitButton tsbRotateCCW;
         private System.Windows.Forms.ToolStripSplitButton tsbRotateCW;
+        private System.Windows.Forms.Timer tmrRedraw;
     }
 }
 

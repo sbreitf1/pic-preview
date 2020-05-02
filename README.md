@@ -15,7 +15,6 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 - Config dialog
 - Info dialog for current image properties
 - Quick edit functions like rotate and flip
-- Always render with nearest-neighbor interpolation while moving and dragging image, render with better filter later
 - Use fast-loading thumbnail images for blured preview while loading image
 - File associations for older Systems
 - Export TGA
