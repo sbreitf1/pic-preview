@@ -136,7 +136,16 @@ namespace PicPreview
 
         private void tsbOptions_ButtonClick(object sender, EventArgs e)
         {
-
+            try
+            {
+                FileAssociation.RegisterApplicationForUser();
+                FileAssociation.AssociateForUser();
+                //MessageBox.Show("Files associated!", "PicPreview", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("File association failed: " + ex.Message, "PicPreview", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
 

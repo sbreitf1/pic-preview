@@ -74,16 +74,16 @@
             this.tsbImageEffects,
             this.tsbSave,
             this.toolStripStatusLabel2});
-            this.statusStrip.Location = new System.Drawing.Point(0, 537);
+            this.statusStrip.Location = new System.Drawing.Point(0, 390);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(774, 61);
+            this.statusStrip.Size = new System.Drawing.Size(707, 61);
             this.statusStrip.TabIndex = 0;
             this.statusStrip.Text = "statusStrip1";
             // 
             // toolStripStatusLabel1
             // 
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(156, 56);
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(123, 56);
             this.toolStripStatusLabel1.Spring = true;
             // 
             // tsbOptions
@@ -222,16 +222,16 @@
             // toolStripStatusLabel2
             // 
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(156, 56);
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(123, 56);
             this.toolStripStatusLabel2.Spring = true;
             // 
             // pnlAnimation
             // 
             this.pnlAnimation.Controls.Add(this.splitContainer1);
             this.pnlAnimation.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlAnimation.Location = new System.Drawing.Point(0, 488);
+            this.pnlAnimation.Location = new System.Drawing.Point(0, 341);
             this.pnlAnimation.Name = "pnlAnimation";
-            this.pnlAnimation.Size = new System.Drawing.Size(774, 49);
+            this.pnlAnimation.Size = new System.Drawing.Size(707, 49);
             this.pnlAnimation.TabIndex = 1;
             // 
             // splitContainer1
@@ -249,7 +249,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.tbrImageFrame);
-            this.splitContainer1.Size = new System.Drawing.Size(774, 49);
+            this.splitContainer1.Size = new System.Drawing.Size(707, 49);
             this.splitContainer1.SplitterDistance = 54;
             this.splitContainer1.TabIndex = 1;
             // 
@@ -269,7 +269,7 @@
             this.tbrImageFrame.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tbrImageFrame.Location = new System.Drawing.Point(0, 0);
             this.tbrImageFrame.Name = "tbrImageFrame";
-            this.tbrImageFrame.Size = new System.Drawing.Size(716, 49);
+            this.tbrImageFrame.Size = new System.Drawing.Size(649, 49);
             this.tbrImageFrame.TabIndex = 0;
             this.tbrImageFrame.TickStyle = System.Windows.Forms.TickStyle.Both;
             this.tbrImageFrame.Scroll += new System.EventHandler(this.tbrImageFrame_Scroll);
@@ -282,7 +282,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.ClientSize = new System.Drawing.Size(774, 598);
+            this.ClientSize = new System.Drawing.Size(707, 451);
             this.Controls.Add(this.pnlAnimation);
             this.Controls.Add(this.statusStrip);
             this.DoubleBuffered = true;
