@@ -12,7 +12,7 @@ namespace PicPreview.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.0.1.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.9.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -104,6 +104,66 @@ namespace PicPreview.Properties {
             }
             set {
                 this["CheckFileAssociations"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("NearestNeighbor")]
+        public global::System.Drawing.Drawing2D.InterpolationMode MaximizeFilter {
+            get {
+                return ((global::System.Drawing.Drawing2D.InterpolationMode)(this["MaximizeFilter"]));
+            }
+            set {
+                this["MaximizeFilter"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("HighQualityBicubic")]
+        public global::System.Drawing.Drawing2D.InterpolationMode MinimizeFilter {
+            get {
+                return ((global::System.Drawing.Drawing2D.InterpolationMode)(this["MinimizeFilter"]));
+            }
+            set {
+                this["MinimizeFilter"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool FastRenderAnimations {
+            get {
+                return ((bool)(this["FastRenderAnimations"]));
+            }
+            set {
+                this["FastRenderAnimations"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool FastRenderInteraction {
+            get {
+                return ((bool)(this["FastRenderInteraction"]));
+            }
+            set {
+                this["FastRenderInteraction"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool RenderTransparencyGrid {
+            get {
+                return ((bool)(this["RenderTransparencyGrid"]));
+            }
+            set {
+                this["RenderTransparencyGrid"] = value;
             }
         }
     }

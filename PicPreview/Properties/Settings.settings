@@ -23,5 +23,20 @@
     <Setting Name="CheckFileAssociations" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="MaximizeFilter" Type="System.Drawing.Drawing2D.InterpolationMode" Scope="User">
+      <Value Profile="(Default)">NearestNeighbor</Value>
+    </Setting>
+    <Setting Name="MinimizeFilter" Type="System.Drawing.Drawing2D.InterpolationMode" Scope="User">
+      <Value Profile="(Default)">HighQualityBicubic</Value>
+    </Setting>
+    <Setting Name="FastRenderAnimations" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="FastRenderInteraction" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="RenderTransparencyGrid" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

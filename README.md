@@ -11,7 +11,6 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 # Open Features & Issues
 
 - Select image export quality and other options
-- Config dialog
 - Info dialog for current image properties
 - Quick edit functions like rotate and flip
 - Use fast-loading thumbnail images for blured preview while loading image

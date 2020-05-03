@@ -134,19 +134,12 @@ namespace PicPreview
         }
 
 
-
-
         private void tsbOptions_ButtonClick(object sender, EventArgs e)
         {
-            try
+            ConfigDialog dialog = new ConfigDialog();
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                FileAssociation.RegisterApplicationForUser();
-                FileAssociation.AssociateForUser();
-                //MessageBox.Show("Files associated!", "PicPreview", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show("File association failed: " + ex.Message, "PicPreview", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                RedrawImage(RedrawReason.GenericUpdate);
             }
         }
 
@@ -195,7 +188,7 @@ namespace PicPreview
         }
 
         private ImageZoomModes zoomMode = ImageZoomModes.Manual;
-        private readonly float[] ZoomLevels = new float[] { 0.001f, 0.0025f, 0.005f, 0.0075f, 0.01f, 0.025f, 0.05f, 0.075f, 0.1f, 0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 16f, 18f, 20f };
+        private readonly float[] ZoomLevels = new float[] { 0.001f, 0.0025f, 0.005f, 0.0075f, 0.01f, 0.025f, 0.05f, 0.075f, 0.1f, 0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 16f, 18f, 20f, 25f, 30f, 40f };
         private float MinZoom { get { return ZoomLevels[0]; } }
         private float MaxZoom { get { return ZoomLevels[ZoomLevels.Length - 1]; } }
         private float zoom;
@@ -211,7 +204,7 @@ namespace PicPreview
         {
             this.zoomMode = mode;
             UpdateControlStates();
-            RedrawImage(true);
+            RedrawImage(RedrawReason.GenericUpdate);
         }
 
         private void ValidateZoom()
@@ -238,7 +231,7 @@ namespace PicPreview
 
             ValidateZoom();
 
-            RedrawImage(false);
+            RedrawImage(RedrawReason.UserInteraction);
         }
 
         private void ZoomIn(Point fix)
@@ -332,7 +325,7 @@ namespace PicPreview
                     this.offsetX += (e.X - this.lastDragPos.X);
                     this.offsetY += (e.Y - this.lastDragPos.Y);
                     this.lastDragPos = e.Location;
-                    RedrawImage(false);
+                    RedrawImage(RedrawReason.UserInteraction);
                 }
             }
         }
@@ -399,8 +392,7 @@ namespace PicPreview
                 if (sender != this.imageCollection.CurrentImage)
                     return;
 
-                //TODO maybe use lower quality for higher frame rates
-                RedrawImage(true);
+                RedrawImage(RedrawReason.AnimationFrame);
 
                 if (!isUserChange)
                 {
@@ -441,7 +433,7 @@ namespace PicPreview
             if (doRedraw)
             {
                 UpdateControlStates();
-                RedrawImage(true);
+                RedrawImage(RedrawReason.InitialDraw);
             }
         }
 
@@ -486,7 +478,7 @@ namespace PicPreview
                     SetZoomMode(ImageZoomModes.Fill);
                 
                 UpdateControlStates();
-                RedrawImage(true);
+                RedrawImage(RedrawReason.InitialDraw);
             }));
         }
        
@@ -497,7 +489,7 @@ namespace PicPreview
             {
                 this.loadException = ex;
                 UpdateControlStates();
-                RedrawImage(true);
+                RedrawImage(RedrawReason.InitialDraw);
             }));
         }
         #endregion
@@ -729,6 +721,28 @@ namespace PicPreview
             UpdateTitle();
         }
 
+        private InterpolationMode GetMaximizationFilter(bool hq)
+        {
+            if (!hq)
+                return InterpolationMode.NearestNeighbor;
+
+            if (this.imageCollection.CurrentImage.HasAnimation && Properties.Settings.Default.FastRenderAnimations)
+                return InterpolationMode.NearestNeighbor;
+
+            return Properties.Settings.Default.MaximizeFilter;
+        }
+
+        private InterpolationMode GetMinimizationFilter(bool hq)
+        {
+            if (!hq)
+                return InterpolationMode.NearestNeighbor;
+
+            if (this.imageCollection.CurrentImage.HasAnimation && Properties.Settings.Default.FastRenderAnimations)
+                return InterpolationMode.NearestNeighbor;
+
+            return Properties.Settings.Default.MinimizeFilter;
+        }
+
         private void MainForm_Paint(object sender, PaintEventArgs e)
         {
             if (this.imageCollection.IsFileSelected)
@@ -749,7 +763,6 @@ namespace PicPreview
 
                         RectangleF src, dst;
 
-                        //TODO partial image rendering for better speed
                         if (this.zoom == 1)
                         {
                             e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
@@ -758,13 +771,13 @@ namespace PicPreview
                         }
                         else if (this.zoom < 1)
                         {
-                            e.Graphics.InterpolationMode = (renderHighQualityNextTime ? InterpolationMode.HighQualityBicubic : InterpolationMode.NearestNeighbor);
+                            e.Graphics.InterpolationMode = GetMinimizationFilter(renderHighQualityNextTime);
                             src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
                             dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
                         else
                         {
-                            e.Graphics.InterpolationMode = (renderHighQualityNextTime ? InterpolationMode.NearestNeighbor : InterpolationMode.NearestNeighbor);
+                            e.Graphics.InterpolationMode = GetMaximizationFilter(renderHighQualityNextTime);
                             src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
                             dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                         }
@@ -783,7 +796,7 @@ namespace PicPreview
                         dst.X += imageRect.X;
                         dst.Y += imageRect.Y;
 
-                        if (this.imageCollection.CurrentImage.HasAlphaChannel)
+                        if (this.imageCollection.CurrentImage.HasAlphaChannel && Properties.Settings.Default.RenderTransparencyGrid)
                         {
                             const int AlphaGridSize = 20;
 
@@ -868,14 +881,33 @@ namespace PicPreview
 
         private void MainForm_Resize(object sender, EventArgs e)
         {
-            RedrawImage(false);
+            RedrawImage(RedrawReason.UserInteraction);
         }
 
-        private void RedrawImage(bool hq)
+        private enum RedrawReason : int
         {
-            renderHighQualityNextTime = hq;
+            GenericUpdate,
+            InitialDraw,
+            UserInteraction,
+            DeferredUpdate,
+            AnimationFrame
+        }
+
+        private void RedrawImage(RedrawReason reason)
+        {
+            // render hq by default:
+            renderHighQualityNextTime = true;
+            switch (reason)
+            {
+                case RedrawReason.UserInteraction:
+                    if (Properties.Settings.Default.FastRenderInteraction)
+                        renderHighQualityNextTime = false;
+                    break;
+            }
+
             Invalidate();
-            if (!hq)
+
+            if (reason == RedrawReason.UserInteraction && Properties.Settings.Default.FastRenderInteraction)
             {
                 this.hqRedrawAt = DateTime.Now.AddMilliseconds(250);
             }
@@ -886,7 +918,7 @@ namespace PicPreview
             if (DateTime.Now >= this.hqRedrawAt)
             {
                 this.hqRedrawAt = DateTime.MaxValue;
-                RedrawImage(true);
+                RedrawImage(RedrawReason.DeferredUpdate);
             }
         }
         #endregion
