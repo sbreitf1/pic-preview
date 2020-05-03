@@ -10,14 +10,17 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 
 # Open Features & Issues
 
+- Installer
 - Select image export quality and other options
 - Nicer messages
 - Info dialog for current image properties
+- About and Licenses dialog
 - Show old image until new one (or thumbnail) is available to prevent flickering
 - Pre-load images for faster switching
 - Use fast-loading thumbnail images for blured preview while loading image
 - BUG: Drag cursor is shown for zoomed images on animation trackbar
-- About and Licenses dialog
+- Button ToolTips
+- i18n
 - Dark Theme
 - Quick edit functions like rotate and flip (do not save automatically, remember flag and ask on leave)
 - Batch Image Processing

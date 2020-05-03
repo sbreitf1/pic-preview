@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="PicPreview" Language="1033" Version="0.9.0.0" Manufacturer="Simon Breitfelder" UpgradeCode="e1077e8c-5c06-48cc-a741-b1f72044f85e">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="f79194c9-e41a-403f-8a1a-af26517fcb52">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+             Name="PicPreview"
+           Description="Image Preview application"
+            Target="[#PicPreview.exe]"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\SimonBreitfelder\PicPreview" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="ProductFeature" Title="PicPreview" Level="1">
+			<ComponentGroupRef Id="PicPreviewMainApp" />
+      <ComponentRef Id="ApplicationShortcut" />
+		</Feature>
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="PicPreview" />
+			</Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="My Application Name"/>
+      </Directory>
+		</Directory>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="PicPreviewMainApp" Directory="INSTALLFOLDER">
+			<Component Id="PicPreviewExecutable">
+        <File Id="PicPreview.exe" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\PicPreview.exe" KeyPath="yes" />
+        <File Id="PicPreview.pdb" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\PicPreview.pdb" />
+			</Component>
+      <Component Id="PicPreviewDefaultConfig">
+        <File Id="PicPreview.exe.config" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\PicPreview.exe.config" KeyPath="yes" />
+      </Component>
+      <Component Id="LibWebPack86">
+        <File Id="libwebp_x86.dll" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\libwebp_x86.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="LibWebPack64">
+        <File Id="libwebp_x64.dll" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\libwebp_x64.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="LibTGA">
+        <File Id="TargaImage.dll" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\TargaImage.dll" KeyPath="yes" />
+        <File Id="TargaImage.xml" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\TargaImage.xml" />
+      </Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>

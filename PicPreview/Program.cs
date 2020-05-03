@@ -5,6 +5,44 @@ namespace PicPreview
 {
     static class Program
     {
+        public static string AppName
+        {
+            get
+            {
+                return System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+            }
+        }
+
+        public static Version AppVersion
+        {
+            get
+            {
+                return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            }
+        }
+
+        public static string NiceString(this Version version)
+        {
+            string str = "v" + version.Major;
+            int minor = version.Minor;
+            int revision = version.Revision;
+            int build = version.Build;
+            if (minor != 0 || revision != 0 || build != 0)
+            {
+                str += "." + minor;
+                if (revision != 0 || build !=0)
+                {
+                    str += "." + revision;
+                    if (build!=0)
+                    {
+                        str += "." + build;
+                    }
+                }
+            }
+            return str;
+        }
+
+
         /// <summary>
         /// Der Haupteinstiegspunkt für die Anwendung.
         /// </summary>

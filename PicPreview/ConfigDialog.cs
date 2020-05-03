@@ -11,6 +11,7 @@ namespace PicPreview
         {
             InitializeComponent();
             this.Icon = Resources.app_options;
+            this.Text += " [" + Program.AppName + " " + Program.AppVersion.NiceString() + "]";
 
             cbxMaximizeFilter.SelectedIndex = GetListIndex(Settings.Default.MaximizeFilter);
             cbxMinimizeFilter.SelectedIndex = GetListIndex(Settings.Default.MinimizeFilter);

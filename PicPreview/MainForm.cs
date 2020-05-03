@@ -13,6 +13,7 @@ namespace PicPreview
         public MainForm()
         {
             InitializeComponent();
+            this.Text = Program.AppName;
             this.Icon = Properties.Resources.pic_preview;
             this.MouseWheel += MainForm_MouseWheel;
 
@@ -149,12 +150,12 @@ namespace PicPreview
             if (this.imageCollection.IsFileSelected)
             {
                 if (!this.imageCollection.IsImageLoaded || this.imageCollection.IsLoading || (this.zoom == 1))
-                    this.Text = this.imageCollection.CurrentFileName + " - PicPreview";
+                    this.Text = this.imageCollection.CurrentFileName + " - " + Program.AppName;
                 else
-                    this.Text = this.imageCollection.CurrentFileName + " (" + Math.Round(100 * this.zoom) + "%) - PicPreview";
+                    this.Text = this.imageCollection.CurrentFileName + " (" + Math.Round(100 * this.zoom) + "%) - " + Program.AppName;
             }
             else
-                this.Text = "PicPreview";
+                this.Text = Program.AppName;
         }
 
         private void UpdateControlStates()
