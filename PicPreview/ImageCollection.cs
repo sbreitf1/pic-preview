@@ -28,7 +28,7 @@ namespace PicPreview
         public string CurrentFileName { get { return Path.GetFileName(this.currentFile); } }
         private Image currentImage;
         public Image CurrentImage { get { return this.currentImage; } }
-        
+
         int issueCount = 0;
         Mutex imageMutex = new Mutex();
 
@@ -111,7 +111,7 @@ namespace PicPreview
                         this.ImageReady(this);
                 }
                 catch { }
-                
+
                 return LoadImageResults.ImageInCache;
             }
 
@@ -125,7 +125,7 @@ namespace PicPreview
                 try
                 {
                     Image img = new Image(currentFile);
-                    
+
                     this.imageMutex.WaitOne();
                     // has another image been requested in the meantime?
                     if (this.issueCount == issueIndex)

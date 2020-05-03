@@ -22,7 +22,7 @@ namespace PicPreview
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            if(Properties.Settings.Default.FirstStart)
+            if (Properties.Settings.Default.FirstStart)
             {
                 Properties.Settings.Default.Upgrade();
                 Properties.Settings.Default.FirstStart = false;

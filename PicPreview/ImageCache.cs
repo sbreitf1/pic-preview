@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 
 namespace PicPreview
 {
@@ -78,7 +74,7 @@ namespace PicPreview
 
         public void RemoveImage(string key)
         {
-            lock(this.cache)
+            lock (this.cache)
             {
                 InternalRemoveImage(key);
             }

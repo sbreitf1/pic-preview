@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Windows.Forms;
-using System.IO;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Windows.Forms;
 
 namespace PicPreview
 {
@@ -472,16 +472,16 @@ namespace PicPreview
                 {
                     this.loadException = ex;
                 }
-                
+
                 UpdateTitle();
                 if (this.zoomMode == ImageZoomModes.Manual)
                     SetZoomMode(ImageZoomModes.Fill);
-                
+
                 UpdateControlStates();
                 RedrawImage(RedrawReason.InitialDraw);
             }));
         }
-       
+
 
         private void ImageCollection_ImageLoadingError(ImageCollection sender, Exception ex)
         {
@@ -619,7 +619,7 @@ namespace PicPreview
             //TODO show compression options
             webp.Save(b, file, 75);
 
-            if(isClonedImage)
+            if (isClonedImage)
             {
                 b.Dispose();
             }

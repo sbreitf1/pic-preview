@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using PicPreview.Properties;
+using System;
 using System.Drawing.Drawing2D;
-using PicPreview.Properties;
+using System.Windows.Forms;
 
 namespace PicPreview
 {
@@ -28,7 +21,7 @@ namespace PicPreview
 
         private int GetListIndex(InterpolationMode val)
         {
-            switch(val)
+            switch (val)
             {
                 case InterpolationMode.NearestNeighbor: return 0;
                 case InterpolationMode.Bilinear: return 1;
@@ -65,7 +58,7 @@ namespace PicPreview
 
         private InterpolationMode GetInterpolationMode(int listIndex)
         {
-            switch(listIndex)
+            switch (listIndex)
             {
                 case 0: return InterpolationMode.NearestNeighbor;
                 case 1: return InterpolationMode.Bilinear;
