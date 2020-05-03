@@ -25,17 +25,17 @@ namespace PicPreview
         {
             string str = "v" + version.Major;
             int minor = version.Minor;
-            int revision = version.Revision;
             int build = version.Build;
-            if (minor != 0 || revision != 0 || build != 0)
+            int revision = version.Revision;
+            if (minor != 0 || build != 0 || revision != 0)
             {
                 str += "." + minor;
-                if (revision != 0 || build !=0)
+                if (build != 0 || revision != 0)
                 {
-                    str += "." + revision;
-                    if (build!=0)
+                    str += "." + build;
+                    if (revision != 0)
                     {
-                        str += "." + build;
+                        str += "." + revision;
                     }
                 }
             }

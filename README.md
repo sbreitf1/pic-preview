@@ -18,6 +18,7 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 - Pre-load images for faster switching
 - Use fast-loading thumbnail images for blured preview while loading image
 - BUG: Drag cursor is shown for zoomed images on animation trackbar
+- Maintain file order as seen in explorer for left/right navigation
 - Button ToolTips
 - i18n
 - Dark Theme

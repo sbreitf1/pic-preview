@@ -146,7 +146,7 @@ namespace PicPreview
         /// </summary>
         public void ShowSystemDefaultsPanel()
         {
-            //TODO switch for older systems to just set file extension in ClassesRoot
+            //TODO open control panel in foreground
             Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"system32\control.exe"), "/name Microsoft.DefaultPrograms /page pageDefaultProgram");
         }
     }

@@ -57,6 +57,12 @@ namespace PicPreview
                 LoadImage(args[1]);
             else
                 UpdateControlStates();
+
+            // force window to foreground
+            this.TopMost = true;
+            BringToFront();
+            Activate();
+            this.TopMost = false;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
