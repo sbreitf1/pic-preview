@@ -11,11 +11,18 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 # Open Features & Issues
 
 - Select image export quality and other options
+- Nicer messages
 - Info dialog for current image properties
-- Quick edit functions like rotate and flip
+- Show old image until new one (or thumbnail) is available to prevent flickering
+- Pre-load images for faster switching
 - Use fast-loading thumbnail images for blured preview while loading image
+- BUG: Drag cursor is shown for zoomed images on animation trackbar
+- About and Licenses dialog
+- Dark Theme
+- Quick edit functions like rotate and flip (do not save automatically, remember flag and ask on leave)
+- Batch Image Processing
 - File associations for older Systems
 - Export TGA
 - Export TIFF
 - Export animated images
-- BUG: Drag cursor is shown for zoomed images on animation trackbar
+- Auto Update mechanism
