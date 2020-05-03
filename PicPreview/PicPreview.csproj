@@ -57,7 +57,7 @@
     <Compile Include="ConfigDialog.Designer.cs">
       <DependentUpon>ConfigDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="FileAssociation.cs" />
+    <Compile Include="FileAssociationHelper.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageCache.cs" />
     <Compile Include="ImageCollection.cs" />

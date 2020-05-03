@@ -10,7 +10,6 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 
 # Open Features & Issues
 
-- Installer
 - Select image export quality and other options
 - Nicer messages
 - Info dialog for current image properties
@@ -24,7 +23,6 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 - Dark Theme
 - Quick edit functions like rotate and flip (do not save automatically, remember flag and ask on leave)
 - Batch Image Processing
-- File associations for older Systems
 - Export TGA
 - Export TIFF
 - Export animated images

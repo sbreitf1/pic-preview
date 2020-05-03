@@ -23,12 +23,11 @@ namespace PicPreview
             this.imageCollection = new ImageCollection();
             this.imageCollection.ImageReady += ImageCollection_ImageReady;
             this.imageCollection.ImageLoadingError += ImageCollection_ImageLoadingError;
-
-            //FileAssociation.Associate(".jpg");
         }
 
-        private void MainForm_Shown(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
+            // update window state befor showing to prevent flickering
             if (Properties.Settings.Default.WindowX > -1000000 && Properties.Settings.Default.WindowY > -1000000 && Properties.Settings.Default.WindowWidth > 0 && Properties.Settings.Default.WindowHeight > 0)
             {
                 //TODO check if in screen
@@ -41,7 +40,10 @@ namespace PicPreview
             {
                 this.WindowState = FormWindowState.Maximized;
             }
+        }
 
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
             if (Properties.Settings.Default.CheckFileAssociations)
             {
                 //TODO check file associations and show window

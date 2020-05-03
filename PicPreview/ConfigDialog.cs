@@ -35,12 +35,22 @@ namespace PicPreview
         {
             try
             {
-                FileAssociation.RegisterApplicationForUser();
-                FileAssociation.AssociateForUser();
+                FileAssociationHelper assoc = new FileAssociationHelper(Program.AppName, Program.AppName, "sbreitf1.PicPreview.image", new string[] { ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".tga", ".webp" });
+                
+                assoc.RegisterApplicationForUser();
+                if (assoc.NeedUserPrompt)
+                {
+                    assoc.ShowSystemDefaultsPanel();
+                }
+                else
+                {
+                    assoc.AssociateFileExtensionsForUser();
+                    MessageBox.Show("File extensions have been associated.", Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("File association failed: " + ex.Message, "PicPreview", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("File association failed: " + ex.Message, Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
