@@ -49,13 +49,11 @@ namespace PicPreview
         [STAThread]
         static void Main()
         {
-            /*string[] args = Environment.GetCommandLineArgs();
-            if (args.Length >= 2 && args[1] == "-cmd")
-            {
-                for (int i = 2; i < args.Length; i++)
-                    ExecuteCommand(args[i]);
-                return;
-            }*/
+            /*Microsoft.WindowsAPICodePack.Shell.ShellFile f = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(@"G:\Eigene Dateien\Eigene Bilder\Wallpaper\epic-sunset-wallpapers_6757_1280x800.jpg");
+            System.Drawing.Bitmap b = f.Thumbnail.LargeBitmap;
+            b.Save(@"G:\backup-api\thumb.png");
+            b.Dispose();
+            return;*/
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -69,20 +67,5 @@ namespace PicPreview
 
             Application.Run(new MainForm());
         }
-
-
-        /*static void ExecuteCommand(string cmd)
-        {
-            if (cmd.StartsWith("CreateProgId"))
-                FileAssociation.CreateProgId(false);
-            else if (cmd.StartsWith("DeleteProgId"))
-                FileAssociation.DeleteProgId(false);
-            else if (cmd.StartsWith("RegisterApplication"))
-                FileAssociation.RegisterApplication(false);
-            else if (cmd.StartsWith("UnregisterApplication"))
-                FileAssociation.UnregisterApplication(false);
-            else if (cmd.StartsWith("Associate:"))
-                FileAssociation.Associate(cmd.Substring(10), false);
-        }*/
     }
 }

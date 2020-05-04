@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
+using System.Drawing.Text;
 
 namespace PicPreview
 {
@@ -157,7 +158,7 @@ namespace PicPreview
         {
             if (this.imageCollection.IsFileSelected)
             {
-                if (!this.imageCollection.IsImageLoaded || this.imageCollection.IsLoading || (this.zoom == 1))
+                if (!this.imageCollection.HasCurrentImage || this.imageCollection.IsLoading || (this.zoom == 1))
                     this.Text = this.imageCollection.CurrentFileName + " - " + Program.AppName;
                 else
                     this.Text = this.imageCollection.CurrentFileName + " (" + Math.Round(100 * this.zoom) + "%) - " + Program.AppName;
@@ -168,15 +169,15 @@ namespace PicPreview
 
         private void UpdateControlStates()
         {
-            tsbZoomModeFit.Enabled = (this.imageCollection.IsImageLoaded && this.zoomMode != ImageZoomModes.Fill);
-            tsbZoomModeOriginal.Enabled = (this.imageCollection.IsImageLoaded && this.zoomMode != ImageZoomModes.Original);
-            tsbPrevious.Enabled = this.imageCollection.CanSwipeImages;
-            tsbNext.Enabled = this.imageCollection.CanSwipeImages;
+            tsbZoomModeFit.Enabled = (this.imageCollection.HasCurrentImage && this.zoomMode != ImageZoomModes.Fill);
+            tsbZoomModeOriginal.Enabled = (this.imageCollection.HasCurrentImage && this.zoomMode != ImageZoomModes.Original);
+            tsbPrevious.Enabled = (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CanSwipeImages);
+            tsbNext.Enabled = (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CanSwipeImages);
             tsbImageEffects.Enabled = false;
             tsbRotateCW.Enabled = false;
             tsbRotateCCW.Enabled = false;
-            tsbSave.Enabled = (this.imageCollection.IsImageLoaded);
-            pnlAnimation.Visible = (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation);
+            tsbSave.Enabled = (this.imageCollection.IsCurrentImageLoaded);
+            pnlAnimation.Visible = (this.imageCollection.HasCurrentImage && this.imageCollection.CurrentImage.HasAnimation);
 
             // only change when really needed, so the resizing-cursor doesn't get unnecessarily changed
             Cursor targetCursor = (this.CanDragImage ? Cursors.SizeAll : Cursors.Default);
@@ -206,8 +207,8 @@ namespace PicPreview
         private bool dragging = false;
         private Point lastDragPos;
 
-        private bool CanZoomIn { get { return (this.imageCollection.IsImageLoaded && this.zoom < MaxZoom); } }
-        private bool CanZoomOut { get { return (this.imageCollection.IsImageLoaded && (this.zoom > 1 || this.CanDragImage)); } }
+        private bool CanZoomIn { get { return (this.imageCollection.IsCurrentImageLoaded && this.zoom < MaxZoom); } }
+        private bool CanZoomOut { get { return (this.imageCollection.IsCurrentImageLoaded && (this.zoom > 1 || this.CanDragImage)); } }
 
         private void SetZoomMode(ImageZoomModes mode)
         {
@@ -305,7 +306,7 @@ namespace PicPreview
         {
             get
             {
-                if (!this.imageCollection.IsImageLoaded)
+                if (!this.imageCollection.IsCurrentImageLoaded)
                     return false;
 
                 Rectangle imageRect = GetImageRect();
@@ -358,13 +359,13 @@ namespace PicPreview
             if (this.noAnimationUpdate)
                 return;
 
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
                 this.imageCollection.CurrentImage.CurrentFrame = tbrImageFrame.Value;
         }
 
         private void tbrImageFrame_MouseDown(object sender, MouseEventArgs e)
         {
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
             {
                 this.wasAnimationPaused = this.imageCollection.CurrentImage.AnimationPaused;
                 this.imageCollection.CurrentImage.PauseAnimation();
@@ -373,7 +374,7 @@ namespace PicPreview
 
         private void tbrImageFrame_MouseUp(object sender, MouseEventArgs e)
         {
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
             {
                 if (!this.wasAnimationPaused)
                     this.imageCollection.CurrentImage.StartAnimation();
@@ -382,7 +383,7 @@ namespace PicPreview
 
         private void btnAnimation_Click(object sender, EventArgs e)
         {
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
             {
                 if (this.imageCollection.CurrentImage.AnimationPaused)
                     this.imageCollection.CurrentImage.StartAnimation();
@@ -430,19 +431,22 @@ namespace PicPreview
                 this.loadException = null;
 
                 LoadImageResults result = this.imageCollection.LoadImage(file);
-                // ImageReady-Event was fired and no redraw is necessary here
                 if (result == LoadImageResults.ImageInCache)
+                {
+                    // ImageReady-Event was fired and no redraw is necessary here, will be done by ImageReady callback
                     doRedraw = false;
+                }
             }
             catch (Exception ex)
             {
-                //TODO log and show error message
+                this.loadException = ex;
+                MessageBox.Show("An unexpected error occured: " + ex.Message + "\n\n" + ex.StackTrace, Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             UpdateTitle();
+            UpdateControlStates();
             if (doRedraw)
             {
-                UpdateControlStates();
-                RedrawImage(RedrawReason.InitialDraw);
+                RedrawImage(RedrawReason.ShortLivedMessage);
             }
         }
 
@@ -463,9 +467,10 @@ namespace PicPreview
         {
             this.Invoke(new Action(() =>
             {
+                this.loadException = null;
                 try
                 {
-                    if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+                    if (this.imageCollection.HasCurrentImage && this.imageCollection.CurrentImage.HasAnimation)
                     {
                         this.noAnimationUpdate = true;
                         tbrImageFrame.Maximum = (this.imageCollection.CurrentImage.FrameCount - 1);
@@ -506,19 +511,32 @@ namespace PicPreview
         #region Image Exporting
         private void tsbSave_ButtonClick(object sender, EventArgs e)
         {
+            string currentFileName = this.imageCollection.CurrentFileName;
+
             if (this.imageCollection.CurrentImage.HasAnimation)
             {
+                bool continuePlaying = false;
+                if (!this.imageCollection.CurrentImage.AnimationPaused)
+                {
+                    continuePlaying = true;
+                    this.btnAnimation.PerformClick();
+                }
+
                 if (MessageBox.Show("Only the currently visible frame will be saved from the animated image.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
                 {
+                    if (continuePlaying)
+                        this.btnAnimation.PerformClick();
                     return;
                 }
+
+                currentFileName = Path.GetFileNameWithoutExtension(currentFileName) + "_frame-" + (this.imageCollection.CurrentImage.CurrentFrame + 1) + Path.GetExtension(currentFileName);
             }
 
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.InitialDirectory = this.imageCollection.CurrentDirectory;
-            dialog.FileName = this.imageCollection.CurrentFileName;
-            dialog.Filter = "PNG|*.png|JPEG|*.jpg;*.jpeg|WEBP|*.webp|Bitmap|*.bmp|GIF|*.gif";
-            string ext = Path.GetExtension(this.imageCollection.CurrentFileName);
+            dialog.FileName = currentFileName;
+            dialog.Filter = "Portable Network Graphics|*.png|JPEG|*.jpg;*.jpeg|WebP|*.webp|Bitmap|*.bmp|Graphics Interchange Format|*.gif";
+            string ext = Path.GetExtension(currentFileName);
             switch (ext.ToLower())
             {
                 case ".png":
@@ -543,7 +561,7 @@ namespace PicPreview
                     break;
 
                 default:
-                    dialog.FileName = this.imageCollection.CurrentFileName.Substring(0, this.imageCollection.CurrentFileName.Length - ext.Length) + ".png";
+                    dialog.FileName = Path.GetFileNameWithoutExtension(currentFileName) + ".png";
                     dialog.FilterIndex = 1;
                     break;
             }
@@ -605,32 +623,57 @@ namespace PicPreview
                     return;
             }
 
-            using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
+            ExportQualityDialog dialog = new ExportQualityDialog();
+            dialog.Text = "Export JPEG";
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                //TODO show compression options
-                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Jpeg);
+                using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    ImageCodecInfo jpegEncoder = null;
+                    foreach (ImageCodecInfo codec in ImageCodecInfo.GetImageDecoders())
+                    {
+                        if (codec.FormatID == ImageFormat.Jpeg.Guid)
+                        {
+                            jpegEncoder = codec;
+                            break;
+                        }
+                    }
+
+                    if (jpegEncoder == null)
+                    {
+                        throw new Exception("No JPEG encoder available.");
+                    }
+
+                    EncoderParameters parameters = new EncoderParameters(1);
+                    parameters.Param[0] = new EncoderParameter(Encoder.Quality, (long)dialog.Quality);
+                    this.imageCollection.CurrentImage.Bitmap.Save(stream, jpegEncoder, parameters);
+                }
             }
         }
 
         private void ExportWEBP(string file)
         {
-            Bitmap b = this.imageCollection.CurrentImage.Bitmap;
-            bool isClonedImage = false;
-            if (b.PixelFormat != PixelFormat.Format24bppRgb && b.PixelFormat != PixelFormat.Format32bppArgb)
+            ExportQualityDialog dialog = new ExportQualityDialog();
+            dialog.Text = "Export WebP";
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                // need to change pixel format for webp encoder
-                PixelFormat pf = (this.imageCollection.CurrentImage.HasAlphaChannel ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb);
-                b = this.imageCollection.CurrentImage.Bitmap.Clone(new Rectangle(0, 0, b.Width, b.Height), pf);
-                isClonedImage = true;
-            }
+                Bitmap b = this.imageCollection.CurrentImage.Bitmap;
+                bool isClonedImage = false;
+                if (b.PixelFormat != PixelFormat.Format24bppRgb && b.PixelFormat != PixelFormat.Format32bppArgb)
+                {
+                    // need to change pixel format for webp encoder
+                    PixelFormat pf = (this.imageCollection.CurrentImage.HasAlphaChannel ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb);
+                    b = this.imageCollection.CurrentImage.Bitmap.Clone(new Rectangle(0, 0, b.Width, b.Height), pf);
+                    isClonedImage = true;
+                }
 
-            WebP webp = new WebP();
-            //TODO show compression options
-            webp.Save(b, file, 75);
+                WebP webp = new WebP();
+                webp.Save(b, file, dialog.Quality);
 
-            if (isClonedImage)
-            {
-                b.Dispose();
+                if (isClonedImage)
+                {
+                    b.Dispose();
+                }
             }
         }
 
@@ -673,7 +716,7 @@ namespace PicPreview
 
         private Rectangle GetImageRect()
         {
-            if (this.imageCollection.IsImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.imageCollection.HasCurrentImage && this.imageCollection.CurrentImage.HasAnimation)
                 return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 1);
             else
                 return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - 1);
@@ -754,138 +797,179 @@ namespace PicPreview
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
         {
-            if (this.imageCollection.IsFileSelected)
+            try
             {
-                if (this.imageCollection.IsLoading)
+                if (this.imageCollection.IsFileSelected)
                 {
-                    PrintCenteredString(e.Graphics, "Loading image...");
-                }
-                else if (this.imageCollection.IsImageLoaded)
-                {
-                    // update zoom and offset
-                    UpdateViewParameters();
-
-                    if (this.zoom > 0)
+                    if (this.imageCollection.HasCurrentImage)
                     {
-                        Rectangle imageRect = GetImageRect();
-                        Size zoomedSize = GetZoomedImageSize();
+                        // update zoom and offset
+                        UpdateViewParameters();
 
-                        RectangleF src, dst;
+                        if (this.zoom > 0)
+                        {
+                            Rectangle imageRect = GetImageRect();
+                            Size zoomedSize = GetZoomedImageSize();
 
-                        if (this.zoom == 1)
-                        {
-                            e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-                            src = new RectangleF(0, 0, zoomedSize.Width, zoomedSize.Height);
-                            dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
-                        }
-                        else if (this.zoom < 1)
-                        {
-                            e.Graphics.InterpolationMode = GetMinimizationFilter(renderHighQualityNextTime);
-                            src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
-                            dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
-                        }
-                        else
-                        {
-                            e.Graphics.InterpolationMode = GetMaximizationFilter(renderHighQualityNextTime);
-                            src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
-                            dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
-                        }
-                        if (zoomedSize.Width > imageRect.Width)
-                        {
-                            src = new RectangleF(-this.offsetX / zoom, src.Y, imageRect.Width / zoom, src.Height);
-                            dst = new RectangleF(0, dst.Y, imageRect.Width, dst.Height);
-                        }
-                        if (zoomedSize.Height > imageRect.Height)
-                        {
-                            src = new RectangleF(src.X, -this.offsetY / zoom, src.Width, imageRect.Height / zoom);
-                            dst = new RectangleF(dst.X, 0, dst.Width, imageRect.Height);
-                        }
+                            RectangleF src, dst;
 
-                        // move to target rect
-                        dst.X += imageRect.X;
-                        dst.Y += imageRect.Y;
-
-                        if (this.imageCollection.CurrentImage.HasAlphaChannel && Properties.Settings.Default.RenderTransparencyGrid)
-                        {
-                            const int AlphaGridSize = 20;
-
-                            int dstX = (int)dst.X;
-                            int dstY = (int)dst.Y;
-                            int dstWidth = (int)dst.Width;
-                            int dstHeight = (int)dst.Height;
-
-                            SmoothingMode oldSmoothingMode = e.Graphics.SmoothingMode;
-                            e.Graphics.SmoothingMode = SmoothingMode.None;
-                            // render grid for transparency visualization
-                            int xStart = (dstX / AlphaGridSize) * AlphaGridSize;
-                            int yStart = (dstY / AlphaGridSize) * AlphaGridSize;
-                            for (int x = xStart; x <= (dst.X + dst.Width); x += AlphaGridSize)
+                            if (this.zoom == 1)
                             {
-                                for (int y = yStart; y <= (dst.Y + dst.Height); y += AlphaGridSize)
-                                {
-                                    Brush brush = ((x / AlphaGridSize + y / AlphaGridSize) % 2 == 0 ? Brushes.LightGray : Brushes.White);
-
-                                    int tx = x;
-                                    int ty = y;
-                                    int tw = AlphaGridSize;
-                                    int th = AlphaGridSize;
-                                    if (tx < dst.X)
-                                    {
-                                        tw -= (dstX - tx);
-                                        tx = dstX;
-                                    }
-                                    if (ty < dst.Y)
-                                    {
-                                        th -= (dstY - ty);
-                                        ty = dstY;
-                                    }
-                                    if ((tx + tw) > (dstX + dstWidth))
-                                    {
-                                        tw -= (tx + tw) - (dstX + dstWidth);
-                                    }
-                                    if ((ty + th) > (dstY + dstHeight))
-                                    {
-                                        th -= (ty + th) - (dstY + dstHeight);
-                                    }
-
-                                    e.Graphics.FillRectangle(brush, tx, ty, tw, th);
-                                }
+                                e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+                                src = new RectangleF(0, 0, zoomedSize.Width, zoomedSize.Height);
+                                dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                             }
-                            e.Graphics.SmoothingMode = oldSmoothingMode;
+                            else if (this.zoom < 1)
+                            {
+                                e.Graphics.InterpolationMode = GetMinimizationFilter(renderHighQualityNextTime);
+                                src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
+                                dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
+                            }
+                            else
+                            {
+                                e.Graphics.InterpolationMode = GetMaximizationFilter(renderHighQualityNextTime);
+                                src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
+                                dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
+                            }
+                            if (zoomedSize.Width > imageRect.Width)
+                            {
+                                src = new RectangleF(-this.offsetX / zoom, src.Y, imageRect.Width / zoom, src.Height);
+                                dst = new RectangleF(0, dst.Y, imageRect.Width, dst.Height);
+                            }
+                            if (zoomedSize.Height > imageRect.Height)
+                            {
+                                src = new RectangleF(src.X, -this.offsetY / zoom, src.Width, imageRect.Height / zoom);
+                                dst = new RectangleF(dst.X, 0, dst.Width, imageRect.Height);
+                            }
+
+                            // move to target rect
+                            dst.X += imageRect.X;
+                            dst.Y += imageRect.Y;
+
+                            if (this.imageCollection.CurrentImage.HasAlphaChannel && Properties.Settings.Default.RenderTransparencyGrid)
+                            {
+                                const int AlphaGridSize = 20;
+
+                                int dstX = (int)dst.X;
+                                int dstY = (int)dst.Y;
+                                int dstWidth = (int)dst.Width;
+                                int dstHeight = (int)dst.Height;
+
+                                SmoothingMode oldSmoothingMode = e.Graphics.SmoothingMode;
+                                e.Graphics.SmoothingMode = SmoothingMode.None;
+                                // render grid for transparency visualization
+                                int xStart = (dstX / AlphaGridSize) * AlphaGridSize;
+                                int yStart = (dstY / AlphaGridSize) * AlphaGridSize;
+                                for (int x = xStart; x <= (dst.X + dst.Width); x += AlphaGridSize)
+                                {
+                                    for (int y = yStart; y <= (dst.Y + dst.Height); y += AlphaGridSize)
+                                    {
+                                        Brush brush = ((x / AlphaGridSize + y / AlphaGridSize) % 2 == 0 ? Brushes.LightGray : Brushes.White);
+
+                                        int tx = x;
+                                        int ty = y;
+                                        int tw = AlphaGridSize;
+                                        int th = AlphaGridSize;
+                                        if (tx < dst.X)
+                                        {
+                                            tw -= (dstX - tx);
+                                            tx = dstX;
+                                        }
+                                        if (ty < dst.Y)
+                                        {
+                                            th -= (dstY - ty);
+                                            ty = dstY;
+                                        }
+                                        if ((tx + tw) > (dstX + dstWidth))
+                                        {
+                                            tw -= (tx + tw) - (dstX + dstWidth);
+                                        }
+                                        if ((ty + th) > (dstY + dstHeight))
+                                        {
+                                            th -= (ty + th) - (dstY + dstHeight);
+                                        }
+
+                                        e.Graphics.FillRectangle(brush, tx, ty, tw, th);
+                                    }
+                                }
+                                e.Graphics.SmoothingMode = oldSmoothingMode;
+                            }
+
+                            // draw
+                            PixelOffsetMode oldPixelOffset = e.Graphics.PixelOffsetMode;
+                            if (zoom > 1)
+                            {
+                                // pixel offset half prevents ugly alignment errors when zooming
+                                e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
+                            }
+                            lock (this.imageCollection.CurrentImage.Bitmap)
+                                e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
+                            e.Graphics.PixelOffsetMode = oldPixelOffset;
+
+                            e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
+
+                            renderHighQualityNextTime = true;
                         }
+                    }
 
-                        // draw
-                        PixelOffsetMode oldPixelOffset = e.Graphics.PixelOffsetMode;
-                        if (zoom > 1)
-                        {
-                            // pixel offset half prevents ugly alignment errors when zooming
-                            e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
-                        }
-                        lock (this.imageCollection.CurrentImage.Bitmap)
-                            e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
-                        e.Graphics.PixelOffsetMode = oldPixelOffset;
+                    if (this.imageCollection.IsLoading)
+                    {
+                        if (this.imageCollection.HasCurrentImage)
+                            PrintCenteredStringWithBox(e.Graphics, "Loading image...");
+                        else
+                            PrintCenteredString(e.Graphics, "Loading image...");
+                    }
 
-                        e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
-
-                        renderHighQualityNextTime = true;
+                    if (!this.imageCollection.HasCurrentImage && !this.imageCollection.IsLoading)
+                    {
+                        PrintCenteredString(e.Graphics, "Could not load image.");
                     }
                 }
                 else
                 {
-                    PrintCenteredString(e.Graphics, "Could not load image.");
+                    PrintCenteredString(e.Graphics, "No image selected.");
                 }
             }
-            else
+            catch
             {
-                PrintCenteredString(e.Graphics, "No image selected.");
+                //TODO detect and stop infinite loops on persistent errors
+                Invalidate();
             }
         }
 
         private void PrintCenteredString(Graphics g, string str)
         {
+            TextRenderingHint oldTextRenderingHint = g.TextRenderingHint;
+            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+
             SizeF size = g.MeasureString(str, this.textFont);
             Rectangle imageRect = GetImageRect();
             g.DrawString(str, this.textFont, this.textBrush, imageRect.Left + (int)(imageRect.Width - size.Width) / 2, imageRect.Top + (int)(imageRect.Height - size.Height) / 2);
+
+            g.TextRenderingHint = oldTextRenderingHint;
+        }
+
+        private void PrintCenteredStringWithBox(Graphics g, string str)
+        {
+            TextRenderingHint oldTextRenderingHint = g.TextRenderingHint;
+            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+            SmoothingMode oldSmoothingMode = g.SmoothingMode;
+            g.SmoothingMode = SmoothingMode.HighQuality;
+
+            SizeF size = g.MeasureString(str, this.textFont);
+            Rectangle imageRect = GetImageRect();
+
+            Brush bgBrush = new SolidBrush(Color.FromArgb(192, 164, 164, 224));
+            int marginX = 20;
+            int marginY = 10;
+            Rectangle boxRect = new Rectangle(imageRect.Left + (int)(imageRect.Width - size.Width) / 2 - marginX, imageRect.Top + (int)(imageRect.Height - size.Height) / 2 - marginY, (int)size.Width + 2 * marginX, (int)size.Height + 2 * marginY);
+            g.FillPie(bgBrush, boxRect.Left, boxRect.Top, boxRect.Height, boxRect.Height, 90, 180);
+            g.FillPie(bgBrush, boxRect.Right - boxRect.Height, boxRect.Top, boxRect.Height, boxRect.Height, 270, 180);
+            g.FillRectangle(bgBrush, boxRect.Left + boxRect.Height / 2 + 0.5f, boxRect.Top, boxRect.Width - boxRect.Height, boxRect.Height);
+            g.DrawString(str, this.textFont, this.textBrush, imageRect.Left + (int)(imageRect.Width - size.Width) / 2, imageRect.Top + (int)(imageRect.Height - size.Height) / 2);
+
+            g.TextRenderingHint = oldTextRenderingHint;
+            g.SmoothingMode = oldSmoothingMode;
         }
 
         private void MainForm_Resize(object sender, EventArgs e)
@@ -896,6 +980,7 @@ namespace PicPreview
         private enum RedrawReason : int
         {
             GenericUpdate,
+            ShortLivedMessage,
             InitialDraw,
             UserInteraction,
             DeferredUpdate,
@@ -908,6 +993,11 @@ namespace PicPreview
             renderHighQualityNextTime = true;
             switch (reason)
             {
+                case RedrawReason.ShortLivedMessage:
+                    if (Properties.Settings.Default.FastRenderInteraction)
+                        renderHighQualityNextTime = false;
+                    break;
+
                 case RedrawReason.UserInteraction:
                     if (Properties.Settings.Default.FastRenderInteraction)
                         renderHighQualityNextTime = false;

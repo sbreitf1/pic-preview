@@ -37,8 +37,17 @@ namespace PicPreview
                     this.bitmap = img.Image;
                     break;
 
-                default:
+                case ".gif":
+                    // animations seem to be read from streams on-the-fly, thus the stream should be managed by the bitmap object
                     this.bitmap = (Bitmap)Bitmap.FromFile(file);
+                    break;
+
+                default:
+                    // read static images from streamy to force closing the file
+                    using (FileStream stream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                    {
+                        this.bitmap = (Bitmap)Bitmap.FromStream(stream);
+                    }
                     break;
             }
 

@@ -19,26 +19,37 @@ namespace PicPreview
 
     class ImageCollection
     {
+        HashSet<string> imageExtensions;
         ImageCache cache;
 
-        private string currentDirectory;
-        public string CurrentDirectory { get { return this.currentDirectory; } }
-        private string currentFile;
-        public string CurrentFile { get { return this.currentFile; } }
-        public string CurrentFileName { get { return Path.GetFileName(this.currentFile); } }
-        private Image currentImage;
-        public Image CurrentImage { get { return this.currentImage; } }
+        public string CurrentDirectory { get; private set; }
+        public string CurrentFile { get; private set; }
+        public string CurrentFileName { get { return Path.GetFileName(this.CurrentFile); } }
+        public Image CurrentImage { get; private set; }
 
         int issueCount = 0;
         Mutex imageMutex = new Mutex();
 
-        private bool isLoading;
-        public bool IsLoading { get { return this.isLoading; } }
-        public bool IsFileSelected { get { return !string.IsNullOrWhiteSpace(this.currentFile); } }
-        public bool IsImageLoaded { get { return this.currentImage != null; } }
-        public bool CanSwipeImages { get { return !string.IsNullOrWhiteSpace(this.currentDirectory) && Directory.Exists(this.currentDirectory); } }
-
-        HashSet<string> imageExtensions;
+        /// <summary>
+        /// Returns true, when there is currently an image beeing loaded in the background. The CurrentImage object can still be valid.
+        /// </summary>
+        public bool IsLoading { get; private set; }
+        /// <summary>
+        /// Returns whether any file is currently selected regardless of the loading state.
+        /// </summary>
+        public bool IsFileSelected { get { return !string.IsNullOrWhiteSpace(this.CurrentFile); } }
+        /// <summary>
+        /// Returns whether the CurrentImage object contains a valid image.
+        /// </summary>
+        public bool HasCurrentImage { get { return this.CurrentImage != null; } }
+        /// <summary>
+        /// Returns whether the CurrentImage object contains a valid image and no loading process is active.
+        /// </summary>
+        public bool IsCurrentImageLoaded { get { return this.HasCurrentImage && !this.IsLoading; } }
+        /// <summary>
+        /// Returns whether navigation is available for the current image location.
+        /// </summary>
+        public bool CanSwipeImages { get { return !string.IsNullOrWhiteSpace(this.CurrentDirectory) && Directory.Exists(this.CurrentDirectory); } }
 
         public event ThumbnailReadyHandler ThumbnailReady;
         public event ImageReadyHandler ImageReady;
@@ -48,14 +59,15 @@ namespace PicPreview
         public ImageCollection()
         {
             this.imageExtensions = new HashSet<string>();
-            this.imageExtensions.Add(".jpg");
-            this.imageExtensions.Add(".jpeg");
-            this.imageExtensions.Add(".png");
             this.imageExtensions.Add(".bmp");
             this.imageExtensions.Add(".gif");
+            this.imageExtensions.Add(".jpeg");
+            this.imageExtensions.Add(".jpg");
+            this.imageExtensions.Add(".png");
+            this.imageExtensions.Add(".tif");
             this.imageExtensions.Add(".tiff");
-            this.imageExtensions.Add(".webp");
             this.imageExtensions.Add(".tga");
+            this.imageExtensions.Add(".webp");
 
             this.cache = new ImageCache(128 * 1024 * 1024);
         }
@@ -67,59 +79,59 @@ namespace PicPreview
             // save the counter when the loading began, so outdated results can be omitted when they are ready
             this.imageMutex.WaitOne();
             int issueIndex = ++this.issueCount;
-
-            try
-            {
-                // disposing unused Bitmap objects is important as they most likely introduce memory leaks
-                if (this.currentImage != null)
-                {
-                    this.currentImage.Unload();
-                }
-            }
-            catch { }
-
+            
             // safe location information first for browsing (left/right)
             try
             {
-                this.currentFile = imageFile;
-                this.currentDirectory = Path.GetDirectoryName(this.currentFile);
+                this.CurrentFile = imageFile;
+                this.CurrentDirectory = Path.GetDirectoryName(this.CurrentFile);
             }
             catch (Exception ex)
             {
                 try
                 {
-                    if (this.ImageLoadingError != null)
-                        this.ImageLoadingError(this, ex);
+                    this.ImageLoadingError?.Invoke(this, ex);
                 }
                 catch { }
                 this.imageMutex.ReleaseMutex();
                 return LoadImageResults.Error;
             }
 
-            Image cachedImg = this.cache.GetImage(imageFile.ToLower());
+            // disabled cache until reload after change is fixed
+            /*Image cachedImg = this.cache.GetImage(imageFile.ToLower());
             if (cachedImg != null)
             {
-                this.currentImage = cachedImg;
+                try
+                {
+                    // disposing unused Bitmap objects is important as they most likely introduce memory leaks
+                    if (this.CurrentImage != null)
+                    {
+                        this.CurrentImage.Unload();
+                        GC.Collect();
+                    }
+                }
+                catch { }
+
+                this.CurrentImage = cachedImg;
                 // maybe another thread has set this value, just override it
-                this.isLoading = false;
+                this.IsLoading = false;
                 this.imageMutex.ReleaseMutex();
 
                 try
                 {
                     // do not call inside of mutex as it might cause a deadlock
-                    if (this.ImageReady != null)
-                        this.ImageReady(this);
+                    this.ImageReady?.Invoke(this);
                 }
                 catch { }
 
                 return LoadImageResults.ImageInCache;
-            }
+            }*/
 
-            string currentFile = this.currentFile;
+            string currentFile = this.CurrentFile;
             this.imageMutex.ReleaseMutex();
 
             // now try to load the image
-            this.isLoading = true;
+            this.IsLoading = true;
             Thread loadThread = new Thread(new ThreadStart(() =>
             {
                 try
@@ -132,19 +144,29 @@ namespace PicPreview
                     {
                         try
                         {
+                            // disposing unused Bitmap objects is important as they most likely introduce memory leaks
+                            if (this.CurrentImage != null)
+                            {
+                                this.CurrentImage.Unload();
+                                GC.Collect();
+                            }
+                        }
+                        catch { }
+
+                        try
+                        {
                             this.cache.StoreImage(currentFile.ToLower(), img);
                         }
                         catch { }
 
-                        this.currentImage = img;
-                        this.isLoading = false;
+                        this.CurrentImage = img;
+                        this.IsLoading = false;
                         this.imageMutex.ReleaseMutex();
 
                         try
                         {
                             // do not call inside of mutex as it might cause a deadlock
-                            if (this.ImageReady != null)
-                                this.ImageReady(this);
+                            this.ImageReady?.Invoke(this);
                         }
                         catch { }
                     }
@@ -153,8 +175,18 @@ namespace PicPreview
                 }
                 catch (Exception ex)
                 {
-                    if (this.ImageLoadingError != null)
-                        this.ImageLoadingError(this, ex);
+                    try
+                    {
+                        if (this.CurrentImage != null)
+                        {
+                            this.CurrentImage.Unload();
+                            this.CurrentImage = null;
+                        }
+                    }
+                    catch { }
+
+                    this.IsLoading = false;
+                    this.ImageLoadingError?.Invoke(this, ex);
                 }
             }));
             loadThread.IsBackground = true;
@@ -189,19 +221,19 @@ namespace PicPreview
 
         public string GetNextImage()
         {
-            string[] files = GetImageFiles(this.currentDirectory);
+            string[] files = GetImageFiles(this.CurrentDirectory);
             if (files.Length <= 1)
                 return null;
-            int index = FindFileName(this.currentFile, files);
+            int index = FindFileName(this.CurrentFile, files);
             return files[(index + 1) % files.Length];
         }
 
         public string GetPreviousImage()
         {
-            string[] files = GetImageFiles(this.currentDirectory);
+            string[] files = GetImageFiles(this.CurrentDirectory);
             if (files.Length <= 1)
                 return null;
-            int index = FindFileName(this.currentFile, files);
+            int index = FindFileName(this.CurrentFile, files);
             return files[(index + files.Length - 1) % files.Length];
         }
     }

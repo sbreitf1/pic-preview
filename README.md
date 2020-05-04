@@ -10,16 +10,18 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 
 # Open Features & Issues
 
-- Select image export quality and other options
-- Nicer messages
 - Info dialog for current image properties
 - About and Licenses dialog
-- Show old image until new one (or thumbnail) is available to prevent flickering
 - Pre-load images for faster switching
-- Use fast-loading thumbnail images for blured preview while loading image
+- Detect changed images and invalidate cache (F5 shortcut to enforce reload)
+- Allow HQ Redraw on ShortLivedMessage for smaller images
+- Register Application in installer
+- Button to delete current image
 - BUG: Drag cursor is shown for zoomed images on animation trackbar
+- BUG: Full animation is saved when exporting single frame of GIF as GIF
 - Maintain file order as seen in explorer for left/right navigation
 - Button ToolTips
+- Use fast-loading thumbnail images for blured preview while loading image
 - i18n
 - Dark Theme
 - Quick edit functions like rotate and flip (do not save automatically, remember flag and ask on leave)

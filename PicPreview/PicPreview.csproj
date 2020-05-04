@@ -60,6 +60,12 @@
     <Compile Include="ConfigDialog.Designer.cs">
       <DependentUpon>ConfigDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ExportQualityDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExportQualityDialog.Designer.cs">
+      <DependentUpon>ExportQualityDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="FileAssociationHelper.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageCache.cs" />
@@ -76,6 +82,9 @@
     <Compile Include="WebPWrapper.cs" />
     <EmbeddedResource Include="ConfigDialog.resx">
       <DependentUpon>ConfigDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExportQualityDialog.resx">
+      <DependentUpon>ExportQualityDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
