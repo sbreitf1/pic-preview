@@ -35,6 +35,8 @@ namespace PicPreview
                 case ".tga":
                     Paloma.TargaImage img = new Paloma.TargaImage(file);
                     this.bitmap = img.Image;
+                    //TODO dispose tga image?
+                    //img.Dispose();
                     break;
 
                 case ".gif":
@@ -47,6 +49,8 @@ namespace PicPreview
                     using (FileStream stream = new FileStream(file, FileMode.Open, FileAccess.Read))
                     {
                         this.bitmap = (Bitmap)Bitmap.FromStream(stream);
+                        // force pre-loading
+                        int[] list = this.bitmap.PropertyIdList;
                     }
                     break;
             }

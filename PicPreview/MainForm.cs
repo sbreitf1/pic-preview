@@ -959,7 +959,7 @@ namespace PicPreview
             SizeF size = g.MeasureString(str, this.textFont);
             Rectangle imageRect = GetImageRect();
 
-            Brush bgBrush = new SolidBrush(Color.FromArgb(192, 164, 164, 224));
+            Brush bgBrush = new SolidBrush(Color.FromArgb(192, 192, 192, 192));
             int marginX = 20;
             int marginY = 10;
             Rectangle boxRect = new Rectangle(imageRect.Left + (int)(imageRect.Width - size.Width) / 2 - marginX, imageRect.Top + (int)(imageRect.Height - size.Height) / 2 - marginY, (int)size.Width + 2 * marginX, (int)size.Height + 2 * marginY);
