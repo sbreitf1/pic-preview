@@ -155,12 +155,12 @@ namespace PicPreview
 
         private void UpdateTitle()
         {
-            if (this.imageCollection.IsFileSelected)
+            if (this.currentFile != null)
             {
-                if (!this.imageCollection.HasCurrentImage || this.imageCollection.IsLoading || (this.zoom == 1))
-                    this.Text = this.imageCollection.CurrentFileName + " - " + Program.AppName;
+                if (this.currentImage == null || this.isImageLoading || (this.zoom == 1))
+                    this.Text = Path.GetFileName(this.currentFile) + " - " + Program.AppName;
                 else
-                    this.Text = this.imageCollection.CurrentFileName + " (" + Math.Round(100 * this.zoom) + "%) - " + Program.AppName;
+                    this.Text = Path.GetFileName(this.currentFile) + " (" + Math.Round(100 * this.zoom) + "%) - " + Program.AppName;
             }
             else
                 this.Text = Program.AppName;
@@ -168,15 +168,15 @@ namespace PicPreview
 
         private void UpdateControlStates()
         {
-            tsbZoomModeFit.Enabled = (this.imageCollection.HasCurrentImage && this.zoomMode != ImageZoomModes.Fill);
-            tsbZoomModeOriginal.Enabled = (this.imageCollection.HasCurrentImage && this.zoomMode != ImageZoomModes.Original);
-            tsbPrevious.Enabled = (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CanSwipeImages);
-            tsbNext.Enabled = (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CanSwipeImages);
+            tsbZoomModeFit.Enabled = (this.currentImage != null && this.zoomMode != ImageZoomModes.Fill);
+            tsbZoomModeOriginal.Enabled = (this.currentImage != null && this.zoomMode != ImageZoomModes.Original);
+            tsbPrevious.Enabled = (this.currentImage != null && this.imageCollection.CanSwipeImages);
+            tsbNext.Enabled = (this.currentImage != null && this.imageCollection.CanSwipeImages);
             tsbImageEffects.Enabled = false;
             tsbRotateCW.Enabled = false;
             tsbRotateCCW.Enabled = false;
-            tsbSave.Enabled = (this.imageCollection.IsCurrentImageLoaded);
-            pnlAnimation.Visible = (this.imageCollection.HasCurrentImage && this.imageCollection.CurrentImage.HasAnimation);
+            tsbSave.Enabled = (this.currentImage != null);
+            pnlAnimation.Visible = (this.currentImage != null && this.currentImage.HasAnimation);
 
             // only change when really needed, so the resizing-cursor doesn't get unnecessarily changed
             Cursor targetCursor = (this.CanDragImage ? Cursors.SizeAll : Cursors.Default);
@@ -206,8 +206,8 @@ namespace PicPreview
         private bool dragging = false;
         private Point lastDragPos;
 
-        private bool CanZoomIn { get { return (this.imageCollection.IsCurrentImageLoaded && this.zoom < MaxZoom); } }
-        private bool CanZoomOut { get { return (this.imageCollection.IsCurrentImageLoaded && (this.zoom > 1 || this.CanDragImage)); } }
+        private bool CanZoomIn { get { return (this.currentImage != null && this.zoom < MaxZoom); } }
+        private bool CanZoomOut { get { return (this.currentImage != null && (this.zoom > 1 || this.CanDragImage)); } }
 
         private void SetZoomMode(ImageZoomModes mode)
         {
@@ -305,7 +305,7 @@ namespace PicPreview
         {
             get
             {
-                if (!this.imageCollection.IsCurrentImageLoaded)
+                if (this.currentImage == null)
                     return false;
 
                 Rectangle imageRect = GetImageRect();
@@ -358,37 +358,37 @@ namespace PicPreview
             if (this.noAnimationUpdate)
                 return;
 
-            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
-                this.imageCollection.CurrentImage.CurrentFrame = tbrImageFrame.Value;
+            if (this.currentImage != null && this.currentImage.HasAnimation)
+                this.currentImage.CurrentFrame = tbrImageFrame.Value;
         }
 
         private void tbrImageFrame_MouseDown(object sender, MouseEventArgs e)
         {
-            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.currentImage != null && this.currentImage.HasAnimation)
             {
-                this.wasAnimationPaused = this.imageCollection.CurrentImage.AnimationPaused;
-                this.imageCollection.CurrentImage.PauseAnimation();
+                this.wasAnimationPaused = this.currentImage.AnimationPaused;
+                this.currentImage.PauseAnimation();
             }
         }
 
         private void tbrImageFrame_MouseUp(object sender, MouseEventArgs e)
         {
-            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.currentImage != null && this.currentImage.HasAnimation)
             {
                 if (!this.wasAnimationPaused)
-                    this.imageCollection.CurrentImage.StartAnimation();
+                    this.currentImage.StartAnimation();
             }
         }
 
         private void btnAnimation_Click(object sender, EventArgs e)
         {
-            if (this.imageCollection.IsCurrentImageLoaded && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.currentImage != null && this.currentImage.HasAnimation)
             {
-                if (this.imageCollection.CurrentImage.AnimationPaused)
-                    this.imageCollection.CurrentImage.StartAnimation();
+                if (this.currentImage.AnimationPaused)
+                    this.currentImage.StartAnimation();
                 else
-                    this.imageCollection.CurrentImage.PauseAnimation();
-                btnAnimation.Image = (this.imageCollection.CurrentImage.AnimationPaused ? Properties.Resources.Run_32x : Properties.Resources.Pause_32x);
+                    this.currentImage.PauseAnimation();
+                btnAnimation.Image = (this.currentImage.AnimationPaused ? Properties.Resources.Run_32x : Properties.Resources.Pause_32x);
             }
         }
 
@@ -398,7 +398,7 @@ namespace PicPreview
             this.Invoke(new Action(() =>
             {
                 // maybe the image has changed but the event handler is still active
-                if (sender != this.imageCollection.CurrentImage)
+                if (sender != this.currentImage)
                     return;
 
                 RedrawImage(RedrawReason.AnimationFrame);
@@ -415,24 +415,32 @@ namespace PicPreview
 
         #region Image Loading
         ImageCollection imageCollection;
+        // keep image state for ui thread
+        private string currentFile;
+        private bool isImageLoading;
+        private Image currentImage;
         private Exception loadException;
 
-
-        public void LoadImage(string file)
+        
+        private void LoadImage(string path)
         {
-            if (file == null)
+            if (path == null)
                 return;
 
             bool doRedraw = true;
             try
             {
+                this.currentFile = path;
+
                 // paint will render exceptions instead of images, when it is set
                 this.loadException = null;
 
-                LoadImageResults result = this.imageCollection.LoadImage(file);
+                this.isImageLoading = true;
+                LoadImageResults result = this.imageCollection.LoadImage(path);
                 if (result == LoadImageResults.ImageInCache)
                 {
                     // ImageReady-Event was fired and no redraw is necessary here, will be done by ImageReady callback
+                    // this prevents showing a loading message when the image has been loaded from cache
                     doRedraw = false;
                 }
             }
@@ -462,47 +470,57 @@ namespace PicPreview
         }
 
 
-        private void ImageCollection_ImageReady(ImageCollection sender)
+        private void ImageCollection_ImageReady(ImageCollection sender, string path, Image img)
         {
             this.Invoke(new Action(() =>
             {
-                this.loadException = null;
-                try
+                if (path.ToLower() == this.currentFile.ToLower())
                 {
-                    if (this.imageCollection.HasCurrentImage && this.imageCollection.CurrentImage.HasAnimation)
+                    this.isImageLoading = false;
+                    this.loadException = null;
+                    this.currentImage = img;
+                    try
                     {
-                        this.noAnimationUpdate = true;
-                        tbrImageFrame.Maximum = (this.imageCollection.CurrentImage.FrameCount - 1);
-                        tbrImageFrame.Value = 0;
-                        this.noAnimationUpdate = false;
+                        if (this.currentImage != null && this.currentImage.HasAnimation)
+                        {
+                            this.noAnimationUpdate = true;
+                            tbrImageFrame.Maximum = (this.currentImage.FrameCount - 1);
+                            tbrImageFrame.Value = 0;
+                            this.noAnimationUpdate = false;
 
-                        btnAnimation.Image = Properties.Resources.Pause_32x;
-                        this.imageCollection.CurrentImage.FrameChanged += CurrentImage_FrameChanged;
-                        this.imageCollection.CurrentImage.StartAnimation();
+                            btnAnimation.Image = Properties.Resources.Pause_32x;
+                            this.currentImage.FrameChanged += CurrentImage_FrameChanged;
+                            this.currentImage.StartAnimation();
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    this.loadException = ex;
-                }
+                    catch (Exception ex)
+                    {
+                        this.loadException = ex;
+                    }
 
-                UpdateTitle();
-                if (this.zoomMode == ImageZoomModes.Manual)
-                    SetZoomMode(ImageZoomModes.Fill);
+                    UpdateTitle();
+                    if (this.zoomMode == ImageZoomModes.Manual)
+                        SetZoomMode(ImageZoomModes.Fill);
 
-                UpdateControlStates();
-                RedrawImage(RedrawReason.InitialDraw);
+                    UpdateControlStates();
+                    RedrawImage(RedrawReason.InitialDraw);
+                }
             }));
         }
 
 
-        private void ImageCollection_ImageLoadingError(ImageCollection sender, Exception ex)
+        private void ImageCollection_ImageLoadingError(ImageCollection sender, string path, Exception ex)
         {
             this.Invoke(new Action(() =>
             {
-                this.loadException = ex;
-                UpdateControlStates();
-                RedrawImage(RedrawReason.InitialDraw);
+                if (path.ToLower() == this.currentFile.ToLower())
+                {
+                    this.isImageLoading = false;
+                    this.loadException = ex;
+                    this.currentImage = null;
+                    UpdateControlStates();
+                    RedrawImage(RedrawReason.InitialDraw);
+                }
             }));
         }
         #endregion
@@ -510,12 +528,12 @@ namespace PicPreview
         #region Image Exporting
         private void tsbSave_ButtonClick(object sender, EventArgs e)
         {
-            string currentFileName = this.imageCollection.CurrentFileName;
+            string currentFileName = Path.GetFileName(this.currentFile);
 
-            if (this.imageCollection.CurrentImage.HasAnimation)
+            if (this.currentImage.HasAnimation)
             {
                 bool continuePlaying = false;
-                if (!this.imageCollection.CurrentImage.AnimationPaused)
+                if (!this.currentImage.AnimationPaused)
                 {
                     continuePlaying = true;
                     this.btnAnimation.PerformClick();
@@ -528,7 +546,7 @@ namespace PicPreview
                     return;
                 }
 
-                currentFileName = Path.GetFileNameWithoutExtension(currentFileName) + "_frame-" + (this.imageCollection.CurrentImage.CurrentFrame + 1) + Path.GetExtension(currentFileName);
+                currentFileName = Path.GetFileNameWithoutExtension(currentFileName) + "_frame-" + (this.currentImage.CurrentFrame + 1) + Path.GetExtension(currentFileName);
             }
 
             SaveFileDialog dialog = new SaveFileDialog();
@@ -570,6 +588,8 @@ namespace PicPreview
             {
                 try
                 {
+                    //TODO invalidate cache after overwriting
+
                     string newExt = Path.GetExtension(dialog.FileName);
                     switch (newExt.ToLower())
                     {
@@ -610,13 +630,13 @@ namespace PicPreview
         {
             using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
             {
-                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Png);
+                this.currentImage.Bitmap.Save(stream, ImageFormat.Png);
             }
         }
 
         private void ExportJPG(string file)
         {
-            if (this.imageCollection.CurrentImage.HasAlphaChannel)
+            if (this.currentImage.HasAlphaChannel)
             {
                 if (MessageBox.Show("The alpha transparency channel will be lost when saving in this format.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
                     return;
@@ -645,7 +665,7 @@ namespace PicPreview
 
                     EncoderParameters parameters = new EncoderParameters(1);
                     parameters.Param[0] = new EncoderParameter(Encoder.Quality, (long)dialog.Quality);
-                    this.imageCollection.CurrentImage.Bitmap.Save(stream, jpegEncoder, parameters);
+                    this.currentImage.Bitmap.Save(stream, jpegEncoder, parameters);
                 }
             }
         }
@@ -656,13 +676,13 @@ namespace PicPreview
             dialog.Text = "Export WebP";
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                Bitmap b = this.imageCollection.CurrentImage.Bitmap;
+                Bitmap b = this.currentImage.Bitmap;
                 bool isClonedImage = false;
                 if (b.PixelFormat != PixelFormat.Format24bppRgb && b.PixelFormat != PixelFormat.Format32bppArgb)
                 {
                     // need to change pixel format for webp encoder
-                    PixelFormat pf = (this.imageCollection.CurrentImage.HasAlphaChannel ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb);
-                    b = this.imageCollection.CurrentImage.Bitmap.Clone(new Rectangle(0, 0, b.Width, b.Height), pf);
+                    PixelFormat pf = (this.currentImage.HasAlphaChannel ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb);
+                    b = this.currentImage.Bitmap.Clone(new Rectangle(0, 0, b.Width, b.Height), pf);
                     isClonedImage = true;
                 }
 
@@ -678,7 +698,7 @@ namespace PicPreview
 
         private void ExportBMP(string file)
         {
-            if (this.imageCollection.CurrentImage.HasAlphaChannel)
+            if (this.currentImage.HasAlphaChannel)
             {
                 if (MessageBox.Show("The alpha transparency channel will be lost when saving in this format.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
                     return;
@@ -686,13 +706,13 @@ namespace PicPreview
 
             using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
             {
-                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Bmp);
+                this.currentImage.Bitmap.Save(stream, ImageFormat.Bmp);
             }
         }
 
         private void ExportGIF(string file)
         {
-            if (this.imageCollection.CurrentImage.HasAlphaChannel)
+            if (this.currentImage.HasAlphaChannel)
             {
                 if (MessageBox.Show("The alpha transparency channel will be lost when saving in this format.", "Save Image", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
                     return;
@@ -700,7 +720,7 @@ namespace PicPreview
 
             using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
             {
-                this.imageCollection.CurrentImage.Bitmap.Save(stream, ImageFormat.Gif);
+                this.currentImage.Bitmap.Save(stream, ImageFormat.Gif);
             }
         }
         #endregion
@@ -718,7 +738,7 @@ namespace PicPreview
 
         private Rectangle GetImageRect()
         {
-            if (this.imageCollection.HasCurrentImage && this.imageCollection.CurrentImage.HasAnimation)
+            if (this.currentImage != null && this.currentImage.HasAnimation)
                 return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - pnlAnimation.Height - 1);
             else
                 return new Rectangle(0, 0, this.ClientSize.Width - 1, this.ClientSize.Height - statusStrip.Height - 1);
@@ -726,7 +746,7 @@ namespace PicPreview
 
         private Size GetZoomedImageSize()
         {
-            return new Size((int)Math.Round(this.zoom * this.imageCollection.CurrentImage.Width), (int)Math.Round(this.zoom * this.imageCollection.CurrentImage.Height));
+            return new Size((int)Math.Round(this.zoom * this.currentImage.Width), (int)Math.Round(this.zoom * this.currentImage.Height));
         }
 
         private void UpdateViewParameters()
@@ -734,10 +754,10 @@ namespace PicPreview
             Rectangle imageRect = GetImageRect();
             if (this.zoomMode == ImageZoomModes.Fill)
             {
-                if (this.imageCollection.CurrentImage.Width <= imageRect.Width && this.imageCollection.CurrentImage.Height <= imageRect.Height)
+                if (this.currentImage.Width <= imageRect.Width && this.currentImage.Height <= imageRect.Height)
                     this.zoom = 1;
                 else
-                    this.zoom = Math.Min((float)imageRect.Width / (float)this.imageCollection.CurrentImage.Width, (float)imageRect.Height / (float)this.imageCollection.CurrentImage.Height);
+                    this.zoom = Math.Min((float)imageRect.Width / (float)this.currentImage.Width, (float)imageRect.Height / (float)this.currentImage.Height);
                 Size zoomedSize = GetZoomedImageSize();
                 this.offsetX = (imageRect.Width - zoomedSize.Width) / 2;
                 this.offsetY = (imageRect.Height - zoomedSize.Height) / 2;
@@ -745,8 +765,8 @@ namespace PicPreview
             else if (this.zoomMode == ImageZoomModes.Original)
             {
                 this.zoom = 1;
-                this.offsetX = (imageRect.Width - this.imageCollection.CurrentImage.Width) / 2;
-                this.offsetY = (imageRect.Height - this.imageCollection.CurrentImage.Height) / 2;
+                this.offsetX = (imageRect.Width - this.currentImage.Width) / 2;
+                this.offsetY = (imageRect.Height - this.currentImage.Height) / 2;
             }
             else
             {
@@ -780,7 +800,7 @@ namespace PicPreview
             if (!hq)
                 return InterpolationMode.NearestNeighbor;
 
-            if (this.imageCollection.CurrentImage.HasAnimation && Properties.Settings.Default.FastRenderAnimations)
+            if (this.currentImage.HasAnimation && Properties.Settings.Default.FastRenderAnimations)
                 return InterpolationMode.NearestNeighbor;
 
             return Properties.Settings.Default.MaximizeFilter;
@@ -791,7 +811,7 @@ namespace PicPreview
             if (!hq)
                 return InterpolationMode.NearestNeighbor;
 
-            if (this.imageCollection.CurrentImage.HasAnimation && Properties.Settings.Default.FastRenderAnimations)
+            if (this.currentImage.HasAnimation && Properties.Settings.Default.FastRenderAnimations)
                 return InterpolationMode.NearestNeighbor;
 
             return Properties.Settings.Default.MinimizeFilter;
@@ -801,9 +821,9 @@ namespace PicPreview
         {
             try
             {
-                if (this.imageCollection.IsFileSelected)
+                if (this.currentFile != null)
                 {
-                    if (this.imageCollection.HasCurrentImage)
+                    if (this.currentImage != null)
                     {
                         // update zoom and offset
                         UpdateViewParameters();
@@ -824,13 +844,13 @@ namespace PicPreview
                             else if (this.zoom < 1)
                             {
                                 e.Graphics.InterpolationMode = GetMinimizationFilter(renderHighQualityNextTime);
-                                src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
+                                src = new RectangleF(0, 0, this.currentImage.Width, this.currentImage.Height);
                                 dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                             }
                             else
                             {
                                 e.Graphics.InterpolationMode = GetMaximizationFilter(renderHighQualityNextTime);
-                                src = new RectangleF(0, 0, this.imageCollection.CurrentImage.Width, this.imageCollection.CurrentImage.Height);
+                                src = new RectangleF(0, 0, this.currentImage.Width, this.currentImage.Height);
                                 dst = new RectangleF(this.offsetX, this.offsetY, zoomedSize.Width, zoomedSize.Height);
                             }
                             if (zoomedSize.Width > imageRect.Width)
@@ -848,7 +868,7 @@ namespace PicPreview
                             dst.X += imageRect.X;
                             dst.Y += imageRect.Y;
 
-                            if (this.imageCollection.CurrentImage.HasAlphaChannel && Properties.Settings.Default.RenderTransparencyGrid)
+                            if (this.currentImage.HasAlphaChannel && Properties.Settings.Default.RenderTransparencyGrid)
                             {
                                 const int AlphaGridSize = 20;
 
@@ -904,8 +924,7 @@ namespace PicPreview
                                 // pixel offset half prevents ugly alignment errors when zooming
                                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
                             }
-                            lock (this.imageCollection.CurrentImage.Bitmap)
-                                e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
+                            e.Graphics.DrawImage(this.currentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
                             e.Graphics.PixelOffsetMode = oldPixelOffset;
 
                             //e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
@@ -914,15 +933,15 @@ namespace PicPreview
                         }
                     }
 
-                    if (this.imageCollection.IsLoading)
+                    if (this.isImageLoading)
                     {
-                        if (this.imageCollection.HasCurrentImage)
+                        if (this.currentImage != null)
                             PrintCenteredStringWithBox(e.Graphics, "Loading image...");
                         else
                             PrintCenteredString(e.Graphics, "Loading image...");
                     }
 
-                    if (!this.imageCollection.HasCurrentImage && !this.imageCollection.IsLoading)
+                    if (this.currentImage == null && !this.isImageLoading)
                     {
                         PrintCenteredString(e.Graphics, "Could not load image.");
                     }

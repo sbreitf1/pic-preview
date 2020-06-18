@@ -68,7 +68,6 @@
     </Compile>
     <Compile Include="FileAssociationHelper.cs" />
     <Compile Include="Image.cs" />
-    <Compile Include="ImageCache.cs" />
     <Compile Include="ImageCollection.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -76,6 +75,7 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="OrderedMap.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />

@@ -107,6 +107,8 @@ namespace PicPreview
                     len = stream.Read(buffer, 0, buffer.Length);
                 }
 
+                // see https://en.wikipedia.org/wiki/List_of_file_signatures
+
                 // WEBP header (RIFF....WEBP)
                 if (len >= 12 && buffer[0] == 'R' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == 'F' && buffer[8] == 'W' && buffer[9] == 'E' && buffer[10] == 'B' && buffer[11] == 'P')
                 {
