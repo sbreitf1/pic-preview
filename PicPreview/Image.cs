@@ -21,30 +21,42 @@ namespace PicPreview
         protected bool hasAlphaChannel;
         public bool HasAlphaChannel { get { return this.hasAlphaChannel; } }
 
+        private enum ImageLoader
+        {
+            Unknown,
+            Default,
+            DefaultGif,
+            TGA,
+            WEBP
+        }
 
         public Image(string file)
         {
-            string extension = Path.GetExtension(file);
-            switch (extension.ToLower())
+            ImageLoader loader = GetImageLoaderFromFileContent(file);
+            if (loader == ImageLoader.Unknown)
             {
-                case ".webp":
+                loader = GetImageLoaderFromExtension(Path.GetExtension(file));
+            }
+            switch (loader)
+            {
+                case ImageLoader.WEBP:
                     WebP webp = new WebP();
                     this.bitmap = webp.Load(file);
                     break;
 
-                case ".tga":
+                case ImageLoader.TGA:
                     Paloma.TargaImage img = new Paloma.TargaImage(file);
                     this.bitmap = img.Image;
                     //TODO dispose tga image?
                     //img.Dispose();
                     break;
 
-                case ".gif":
+                case ImageLoader.DefaultGif:
                     // animations seem to be read from streams on-the-fly, thus the stream should be managed by the bitmap object
                     this.bitmap = (Bitmap)Bitmap.FromFile(file);
                     break;
 
-                default:
+                case ImageLoader.Default:
                     // read static images from streamy to force closing the file
                     using (FileStream stream = new FileStream(file, FileMode.Open, FileAccess.Read))
                     {
@@ -53,6 +65,9 @@ namespace PicPreview
                         int[] list = this.bitmap.PropertyIdList;
                     }
                     break;
+
+                default:
+                    throw new Exception("Image format not recognized");
             }
 
             NormalizeImageRotation();
@@ -78,6 +93,65 @@ namespace PicPreview
             }
 
             ReadAnimation();
+        }
+
+        private static ImageLoader GetImageLoaderFromFileContent(string file)
+        {
+            try
+            {
+                // read sufficient part of file header
+                byte[] buffer = new byte[64];
+                int len;
+                using (FileStream stream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                {
+                    len = stream.Read(buffer, 0, buffer.Length);
+                }
+
+                // WEBP header (RIFF....WEBP)
+                if (len >= 12 && buffer[0] == 'R' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == 'F' && buffer[8] == 'W' && buffer[9] == 'E' && buffer[10] == 'B' && buffer[11] == 'P')
+                {
+                    return ImageLoader.WEBP;
+                }
+
+                // JPEG header (ÿØÿÛ  /  ÿØÿà..JFIF..  /  ÿØÿî  /  ÿØÿá..Exif..)
+                if (len >= 3 && buffer[0] == 'ÿ' && buffer[1] == 'Ø' && buffer[2] == 'ÿ')
+                {
+                    return ImageLoader.Default;
+                }
+                
+                // PNG header (.PNG....)
+                if (len >= 4 && buffer[1] == 'P' && buffer[2] == 'N' && buffer[3] == 'G')
+                {
+                    return ImageLoader.Default;
+                }
+
+                // GIF header (GIF87a  /  GIF89a)
+                if (len >= 4 && buffer[0] == 'G' && buffer[1] == 'I' && buffer[2] == 'F' && buffer[3] == '8')
+                {
+                    return ImageLoader.DefaultGif;
+                }
+
+                // BMP header (BM)
+                if (len >= 2 && buffer[0] == 'B' && buffer[1] == 'M')
+                {
+                    return ImageLoader.Default;
+                }
+            }
+            catch { }
+
+            // default case
+            return ImageLoader.Unknown;
+        }
+
+        private static ImageLoader GetImageLoaderFromExtension(string extension)
+        {
+            switch (extension.ToLower())
+            {
+                case ".webp": return ImageLoader.WEBP;
+                case ".tga": return ImageLoader.TGA;
+                case ".gif": return ImageLoader.DefaultGif;
+                default: return ImageLoader.Default;
+            }
         }
 
         public void Dispose()

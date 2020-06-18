@@ -60,7 +60,7 @@
             // 
             // statusStrip
             // 
-            this.statusStrip.Font = new System.Drawing.Font("Segoe UI", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.statusStrip.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1,
             this.tsbOptions,
@@ -76,16 +76,16 @@
             this.tsbImageEffects,
             this.tsbSave,
             this.toolStripStatusLabel2});
-            this.statusStrip.Location = new System.Drawing.Point(0, 390);
+            this.statusStrip.Location = new System.Drawing.Point(0, 408);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(707, 61);
+            this.statusStrip.Size = new System.Drawing.Size(707, 43);
             this.statusStrip.TabIndex = 0;
             this.statusStrip.Text = "statusStrip1";
             // 
             // toolStripStatusLabel1
             // 
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(123, 56);
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(122, 38);
             this.toolStripStatusLabel1.Spring = true;
             // 
             // tsbOptions
@@ -96,7 +96,7 @@
             this.tsbOptions.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbOptions.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbOptions.Name = "tsbOptions";
-            this.tsbOptions.Size = new System.Drawing.Size(37, 59);
+            this.tsbOptions.Size = new System.Drawing.Size(37, 41);
             this.tsbOptions.Text = "toolStripSplitButton1";
             this.tsbOptions.ButtonClick += new System.EventHandler(this.tsbOptions_ButtonClick);
             // 
@@ -104,7 +104,7 @@
             // 
             this.toolStripStatusLabel5.Margin = new System.Windows.Forms.Padding(0, 3, 0, 8);
             this.toolStripStatusLabel5.Name = "toolStripStatusLabel5";
-            this.toolStripStatusLabel5.Size = new System.Drawing.Size(31, 50);
+            this.toolStripStatusLabel5.Size = new System.Drawing.Size(21, 32);
             this.toolStripStatusLabel5.Text = "|";
             // 
             // tsbZoomModeFit
@@ -116,7 +116,7 @@
             this.tsbZoomModeFit.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbZoomModeFit.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbZoomModeFit.Name = "tsbZoomModeFit";
-            this.tsbZoomModeFit.Size = new System.Drawing.Size(37, 59);
+            this.tsbZoomModeFit.Size = new System.Drawing.Size(37, 41);
             this.tsbZoomModeFit.Text = "Fit to Window";
             this.tsbZoomModeFit.ButtonClick += new System.EventHandler(this.tsbZoomModeFit_ButtonClick);
             // 
@@ -129,7 +129,7 @@
             this.tsbZoomModeOriginal.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbZoomModeOriginal.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbZoomModeOriginal.Name = "tsbZoomModeOriginal";
-            this.tsbZoomModeOriginal.Size = new System.Drawing.Size(37, 59);
+            this.tsbZoomModeOriginal.Size = new System.Drawing.Size(37, 41);
             this.tsbZoomModeOriginal.Text = "Original Size";
             this.tsbZoomModeOriginal.ButtonClick += new System.EventHandler(this.tsbZoomModeOriginal_ButtonClick);
             // 
@@ -137,7 +137,7 @@
             // 
             this.toolStripStatusLabel3.Margin = new System.Windows.Forms.Padding(0, 3, 0, 8);
             this.toolStripStatusLabel3.Name = "toolStripStatusLabel3";
-            this.toolStripStatusLabel3.Size = new System.Drawing.Size(31, 50);
+            this.toolStripStatusLabel3.Size = new System.Drawing.Size(21, 32);
             this.toolStripStatusLabel3.Text = "|";
             // 
             // tsbPrevious
@@ -149,7 +149,7 @@
             this.tsbPrevious.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbPrevious.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbPrevious.Name = "tsbPrevious";
-            this.tsbPrevious.Size = new System.Drawing.Size(37, 59);
+            this.tsbPrevious.Size = new System.Drawing.Size(37, 41);
             this.tsbPrevious.Text = "toolStripSplitButton1";
             this.tsbPrevious.ButtonClick += new System.EventHandler(this.tsbPrevious_ButtonClick);
             // 
@@ -162,7 +162,7 @@
             this.tsbNext.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbNext.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbNext.Name = "tsbNext";
-            this.tsbNext.Size = new System.Drawing.Size(37, 59);
+            this.tsbNext.Size = new System.Drawing.Size(37, 41);
             this.tsbNext.Text = "toolStripSplitButton1";
             this.tsbNext.ButtonClick += new System.EventHandler(this.tsbNext_ButtonClick);
             // 
@@ -170,7 +170,7 @@
             // 
             this.toolStripStatusLabel4.Margin = new System.Windows.Forms.Padding(0, 3, 0, 8);
             this.toolStripStatusLabel4.Name = "toolStripStatusLabel4";
-            this.toolStripStatusLabel4.Size = new System.Drawing.Size(31, 50);
+            this.toolStripStatusLabel4.Size = new System.Drawing.Size(21, 32);
             this.toolStripStatusLabel4.Text = "|";
             // 
             // tsbRotateCCW
@@ -182,7 +182,7 @@
             this.tsbRotateCCW.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbRotateCCW.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbRotateCCW.Name = "tsbRotateCCW";
-            this.tsbRotateCCW.Size = new System.Drawing.Size(37, 59);
+            this.tsbRotateCCW.Size = new System.Drawing.Size(37, 41);
             this.tsbRotateCCW.Text = "toolStripSplitButton1";
             // 
             // tsbRotateCW
@@ -194,7 +194,7 @@
             this.tsbRotateCW.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbRotateCW.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbRotateCW.Name = "tsbRotateCW";
-            this.tsbRotateCW.Size = new System.Drawing.Size(37, 59);
+            this.tsbRotateCW.Size = new System.Drawing.Size(37, 41);
             this.tsbRotateCW.Text = "toolStripSplitButton1";
             // 
             // tsbImageEffects
@@ -206,7 +206,7 @@
             this.tsbImageEffects.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbImageEffects.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbImageEffects.Name = "tsbImageEffects";
-            this.tsbImageEffects.Size = new System.Drawing.Size(57, 59);
+            this.tsbImageEffects.Size = new System.Drawing.Size(57, 41);
             this.tsbImageEffects.Text = "toolStripSplitButton1";
             // 
             // tsbSave
@@ -218,21 +218,21 @@
             this.tsbSave.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.tsbSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSave.Name = "tsbSave";
-            this.tsbSave.Size = new System.Drawing.Size(37, 59);
+            this.tsbSave.Size = new System.Drawing.Size(37, 41);
             this.tsbSave.Text = "toolStripSplitButton1";
             this.tsbSave.ButtonClick += new System.EventHandler(this.tsbSave_ButtonClick);
             // 
             // toolStripStatusLabel2
             // 
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(123, 56);
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(122, 38);
             this.toolStripStatusLabel2.Spring = true;
             // 
             // pnlAnimation
             // 
             this.pnlAnimation.Controls.Add(this.splitContainer1);
             this.pnlAnimation.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlAnimation.Location = new System.Drawing.Point(0, 341);
+            this.pnlAnimation.Location = new System.Drawing.Point(0, 359);
             this.pnlAnimation.Name = "pnlAnimation";
             this.pnlAnimation.Size = new System.Drawing.Size(707, 49);
             this.pnlAnimation.TabIndex = 1;
@@ -290,7 +290,7 @@
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.BackColor = System.Drawing.SystemColors.Menu;
             this.ClientSize = new System.Drawing.Size(707, 451);
             this.Controls.Add(this.pnlAnimation);
             this.Controls.Add(this.statusStrip);

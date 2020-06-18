@@ -49,6 +49,8 @@ namespace PicPreview
         [STAThread]
         static void Main()
         {
+            //ShellHelper.GetDirSortOrder(@"G:\Eigene Dateien\Downloads");
+
             /*Microsoft.WindowsAPICodePack.Shell.ShellFile f = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(@"G:\Eigene Dateien\Eigene Bilder\Wallpaper\epic-sunset-wallpapers_6757_1280x800.jpg");
             System.Drawing.Bitmap b = f.Thumbnail.LargeBitmap;
             b.Save(@"G:\backup-api\thumb.png");

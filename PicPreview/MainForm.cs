@@ -18,7 +18,6 @@ namespace PicPreview
             this.Icon = Properties.Resources.pic_preview;
             this.MouseWheel += MainForm_MouseWheel;
 
-            this.textBrush = Brushes.Black;
             this.textFont = new Font(this.Font.FontFamily, this.Font.Size * 2);
 
             this.imageCollection = new ImageCollection();
@@ -198,7 +197,7 @@ namespace PicPreview
         }
 
         private ImageZoomModes zoomMode = ImageZoomModes.Manual;
-        private readonly float[] ZoomLevels = new float[] { 0.001f, 0.0025f, 0.005f, 0.0075f, 0.01f, 0.025f, 0.05f, 0.075f, 0.1f, 0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 16f, 18f, 20f, 25f, 30f, 40f };
+        private readonly float[] ZoomLevels = new float[] { 0.001f, 0.0025f, 0.005f, 0.0075f, 0.01f, 0.025f, 0.05f, 0.075f, 0.1f, 0.25f, 0.35f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 16f, 18f, 20f, 25f, 30f, 40f };
         private float MinZoom { get { return ZoomLevels[0]; } }
         private float MaxZoom { get { return ZoomLevels[ZoomLevels.Length - 1]; } }
         private float zoom;
@@ -707,11 +706,14 @@ namespace PicPreview
         #endregion
 
         #region Rendering
-        Brush textBrush;
         Font textFont;
 
         DateTime hqRedrawAt = DateTime.MaxValue;
         bool renderHighQualityNextTime = false;
+
+        Color MessageTextColor = Color.Black;
+        Color MessageBoxBackgroundColor = Color.FromArgb(192, 64, 64, 64);
+        Color MessageBoxTextColor = Color.White;
 
 
         private Rectangle GetImageRect()
@@ -906,7 +908,7 @@ namespace PicPreview
                                 e.Graphics.DrawImage(this.imageCollection.CurrentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
                             e.Graphics.PixelOffsetMode = oldPixelOffset;
 
-                            e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
+                            //e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
 
                             renderHighQualityNextTime = true;
                         }
@@ -944,7 +946,7 @@ namespace PicPreview
 
             SizeF size = g.MeasureString(str, this.textFont);
             Rectangle imageRect = GetImageRect();
-            g.DrawString(str, this.textFont, this.textBrush, imageRect.Left + (int)(imageRect.Width - size.Width) / 2, imageRect.Top + (int)(imageRect.Height - size.Height) / 2);
+            g.DrawString(str, this.textFont, new SolidBrush(this.MessageTextColor), imageRect.Left + (int)(imageRect.Width - size.Width) / 2, imageRect.Top + (int)(imageRect.Height - size.Height) / 2);
 
             g.TextRenderingHint = oldTextRenderingHint;
         }
@@ -959,14 +961,14 @@ namespace PicPreview
             SizeF size = g.MeasureString(str, this.textFont);
             Rectangle imageRect = GetImageRect();
 
-            Brush bgBrush = new SolidBrush(Color.FromArgb(192, 192, 192, 192));
+            Brush bgBrush = new SolidBrush(MessageBoxBackgroundColor);
             int marginX = 20;
             int marginY = 10;
             Rectangle boxRect = new Rectangle(imageRect.Left + (int)(imageRect.Width - size.Width) / 2 - marginX, imageRect.Top + (int)(imageRect.Height - size.Height) / 2 - marginY, (int)size.Width + 2 * marginX, (int)size.Height + 2 * marginY);
             g.FillPie(bgBrush, boxRect.Left, boxRect.Top, boxRect.Height, boxRect.Height, 90, 180);
             g.FillPie(bgBrush, boxRect.Right - boxRect.Height, boxRect.Top, boxRect.Height, boxRect.Height, 270, 180);
             g.FillRectangle(bgBrush, boxRect.Left + boxRect.Height / 2 + 0.5f, boxRect.Top, boxRect.Width - boxRect.Height, boxRect.Height);
-            g.DrawString(str, this.textFont, this.textBrush, imageRect.Left + (int)(imageRect.Width - size.Width) / 2, imageRect.Top + (int)(imageRect.Height - size.Height) / 2);
+            g.DrawString(str, this.textFont, new SolidBrush(this.MessageBoxTextColor), imageRect.Left + (int)(imageRect.Width - size.Width) / 2, imageRect.Top + (int)(imageRect.Height - size.Height) / 2);
 
             g.TextRenderingHint = oldTextRenderingHint;
             g.SmoothingMode = oldSmoothingMode;
