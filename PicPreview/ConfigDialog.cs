@@ -36,7 +36,7 @@ namespace PicPreview
             try
             {
                 FileAssociationHelper assoc = new FileAssociationHelper(Program.AppName, Program.AppName, "sbreitf1.PicPreview.image", new string[] { ".bmp", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".tga", ".webp" });
-                
+
                 assoc.RegisterApplicationForUser();
                 if (assoc.NeedUserPrompt)
                 {

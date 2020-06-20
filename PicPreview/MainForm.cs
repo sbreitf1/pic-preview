@@ -2,9 +2,9 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.IO;
 using System.Windows.Forms;
-using System.Drawing.Text;
 
 namespace PicPreview
 {
@@ -421,7 +421,7 @@ namespace PicPreview
         private Image currentImage;
         private Exception loadException;
 
-        
+
         private void LoadImage(string path)
         {
             if (path == null)
@@ -730,6 +730,7 @@ namespace PicPreview
 
         DateTime hqRedrawAt = DateTime.MaxValue;
         bool renderHighQualityNextTime = false;
+        bool directReRender = false;
 
         Color MessageTextColor = Color.Black;
         Color MessageBoxBackgroundColor = Color.FromArgb(192, 64, 64, 64);
@@ -823,7 +824,7 @@ namespace PicPreview
             {
                 if (this.currentFile != null)
                 {
-                    if (this.currentImage != null)
+                    if (this.currentImage != null && this.currentImage.Bitmap != null)
                     {
                         // update zoom and offset
                         UpdateViewParameters();
@@ -927,9 +928,13 @@ namespace PicPreview
                             e.Graphics.DrawImage(this.currentImage.Bitmap, dst, src, GraphicsUnit.Pixel);
                             e.Graphics.PixelOffsetMode = oldPixelOffset;
 
-                            //e.Graphics.DrawRectangle(Pens.Black, new Rectangle((int)dst.X, (int)dst.Y, (int)dst.Width, (int)dst.Height));
+                            this.renderHighQualityNextTime = true;
 
-                            renderHighQualityNextTime = true;
+                            if (this.directReRender)
+                            {
+                                this.directReRender = false;
+                                RedrawImage(RedrawReason.DeferredUpdate);
+                            }
                         }
                     }
 
@@ -1010,18 +1015,27 @@ namespace PicPreview
 
         private void RedrawImage(RedrawReason reason)
         {
-            // render hq by default:
-            renderHighQualityNextTime = true;
+            // render hq by default without any other option:
+            this.renderHighQualityNextTime = true;
+            this.directReRender = false;
+
             switch (reason)
             {
+                case RedrawReason.InitialDraw:
+                    // render in low quality first to quickly show an image
+                    this.renderHighQualityNextTime = false;
+                    // re-render in high quality instantly after to show a nice image
+                    this.directReRender = true;
+                    break;
+
                 case RedrawReason.ShortLivedMessage:
                     if (Properties.Settings.Default.FastRenderInteraction)
-                        renderHighQualityNextTime = false;
+                        this.renderHighQualityNextTime = false;
                     break;
 
                 case RedrawReason.UserInteraction:
                     if (Properties.Settings.Default.FastRenderInteraction)
-                        renderHighQualityNextTime = false;
+                        this.renderHighQualityNextTime = false;
                     break;
             }
 

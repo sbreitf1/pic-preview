@@ -120,7 +120,7 @@ namespace PicPreview
                 {
                     return ImageLoader.Default;
                 }
-                
+
                 // PNG header (.PNG....)
                 if (len >= 4 && buffer[1] == 'P' && buffer[2] == 'N' && buffer[3] == 'G')
                 {
@@ -295,7 +295,7 @@ namespace PicPreview
                     return;
                 }
 
-                //TODO check for frame dimension first
+                //TODO check if frame dimension exists
                 this.frameDelays = new int[this.bitmap.GetFrameCount(FrameDimension.Time)];
                 this.hasAnimation = (this.frameDelays.Length > 1);
                 if (this.hasAnimation)

@@ -11,7 +11,7 @@ namespace PicPreview
         AsyncLoadingStarted = 1,
         ImageInCache = 2
     }
-    
+
     delegate void ImageReadyHandler(ImageCollection sender, string file, Image img);
     delegate void ImageLoadingErrorHandler(ImageCollection sender, string file, Exception ex);
 
@@ -97,7 +97,7 @@ namespace PicPreview
 
                 lock (this.imagesLock)
                 {
-                    lock(this.currentImageLock)
+                    lock (this.currentImageLock)
                     {
                         // update currently selected image
                         this.currentFile = path;
@@ -299,7 +299,7 @@ namespace PicPreview
                                 }
                             }
 
-                            foreach(string removePath in removeItems)
+                            foreach (string removePath in removeItems)
                             {
                                 this.loadedImages[removePath].Dispose();
                                 this.loadedImages.Remove(removePath);

@@ -12,13 +12,11 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 
 - Info dialog for current image properties
 - About and Licenses dialog
-- Pre-load images for faster switching
 - Detect changed images and invalidate cache (F5 shortcut to enforce reload)
 - Allow HQ Redraw on ShortLivedMessage for smaller images
 - Register Application in installer
 - Button to delete current image
 - BUG: Drag cursor is shown for zoomed images on animation trackbar
-- BUG: Full animation is saved when exporting single frame of GIF as GIF
 - Maintain file order as seen in explorer for left/right navigation
 - Button ToolTips
 - Use fast-loading thumbnail images for blured preview while loading image

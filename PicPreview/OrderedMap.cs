@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace PicPreview
 {
@@ -66,7 +62,7 @@ namespace PicPreview
                 return this.elements[i];
             }
         }
-        
+
         public bool TryGetIndex(T elem, out int index)
         {
             lock (this.elements)

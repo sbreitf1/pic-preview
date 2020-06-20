@@ -3,7 +3,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace PicPreview
 {
@@ -114,7 +113,7 @@ namespace PicPreview
             }
 
             RegistryKey appsKey = Registry.CurrentUser.CreateSubKey(@"Software\RegisteredApplications");
-            appsKey.SetValue(this.appName, @"Software\"+ this.appName+ @"\Capabilities");
+            appsKey.SetValue(this.appName, @"Software\" + this.appName + @"\Capabilities");
 
             SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSHNOWAIT, IntPtr.Zero, IntPtr.Zero);
         }
