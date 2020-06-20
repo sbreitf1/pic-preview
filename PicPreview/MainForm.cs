@@ -11,6 +11,8 @@ namespace PicPreview
     public partial class MainForm : Form
     {
         #region Initialization and Disposal
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         public MainForm()
         {
             InitializeComponent();
@@ -30,6 +32,7 @@ namespace PicPreview
             // update window state befor showing to prevent flickering
             if (Properties.Settings.Default.WindowX > -1000000 && Properties.Settings.Default.WindowY > -1000000 && Properties.Settings.Default.WindowWidth > 0 && Properties.Settings.Default.WindowHeight > 0)
             {
+                logger.Info("Restore old window location from X,Y=" + Properties.Settings.Default.WindowX + "," + Properties.Settings.Default.WindowY + " ; W,H=" + Properties.Settings.Default.WindowWidth + "," + Properties.Settings.Default.WindowHeight);
                 //TODO check if in screen
                 this.Left = Properties.Settings.Default.WindowX;
                 this.Top = Properties.Settings.Default.WindowY;
@@ -46,6 +49,7 @@ namespace PicPreview
         {
             if (Properties.Settings.Default.CheckFileAssociations)
             {
+                logger.Info("Check file associations at startup");
                 //TODO check file associations and show window
 
                 Properties.Settings.Default.CheckFileAssociations = false;
@@ -67,6 +71,8 @@ namespace PicPreview
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            logger.Info("Close main window");
+
             if (this.WindowState == FormWindowState.Maximized)
             {
                 Properties.Settings.Default.WindowMaximized = true;
@@ -425,7 +431,12 @@ namespace PicPreview
         private void LoadImage(string path)
         {
             if (path == null)
+            {
+                logger.Info("Unload image");
                 return;
+            }
+
+            logger.Info("Load image '" + path + "'");
 
             bool doRedraw = true;
             try
@@ -439,6 +450,7 @@ namespace PicPreview
                 LoadImageResults result = this.imageCollection.LoadImage(path);
                 if (result == LoadImageResults.ImageInCache)
                 {
+                    logger.Info("Image is already cached");
                     // ImageReady-Event was fired and no redraw is necessary here, will be done by ImageReady callback
                     // this prevents showing a loading message when the image has been loaded from cache
                     doRedraw = false;
@@ -446,6 +458,8 @@ namespace PicPreview
             }
             catch (Exception ex)
             {
+                logger.Error("Unexpected " + ex.GetType().Name + " during image loading: " + ex.Message);
+                logger.Error(ex.StackTrace);
                 this.loadException = ex;
                 MessageBox.Show("An unexpected error occured: " + ex.Message + "\n\n" + ex.StackTrace, Program.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -472,6 +486,8 @@ namespace PicPreview
 
         private void ImageCollection_ImageReady(ImageCollection sender, string path, Image img)
         {
+            logger.Debug("Image  '" + path + "' is now ready");
+
             this.Invoke(new Action(() =>
             {
                 if (path.ToLower() == this.currentFile.ToLower())
@@ -483,6 +499,7 @@ namespace PicPreview
                     {
                         if (this.currentImage != null && this.currentImage.HasAnimation)
                         {
+                            logger.Info("Image has animation with " + this.currentImage.FrameCount + " frames");
                             this.noAnimationUpdate = true;
                             tbrImageFrame.Maximum = (this.currentImage.FrameCount - 1);
                             tbrImageFrame.Value = 0;
@@ -511,6 +528,9 @@ namespace PicPreview
 
         private void ImageCollection_ImageLoadingError(ImageCollection sender, string path, Exception ex)
         {
+            logger.Error("Unexpected " + ex.GetType().Name + " when loading image '" + path + "': " + ex.Message);
+            logger.Error(ex.StackTrace);
+
             this.Invoke(new Action(() =>
             {
                 if (path.ToLower() == this.currentFile.ToLower())
@@ -956,8 +976,11 @@ namespace PicPreview
                     PrintCenteredString(e.Graphics, "No image selected.");
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                logger.Error("Unexpected " + ex.GetType().Name + " during rendering: " + ex.Message);
+                logger.Error(ex.StackTrace);
+
                 //TODO detect and stop infinite loops on persistent errors
                 Invalidate();
             }

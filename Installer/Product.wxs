@@ -68,6 +68,11 @@
         <File Id="TargaImage.dll" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\TargaImage.dll" KeyPath="yes" />
         <File Id="TargaImage.xml" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\TargaImage.xml" />
       </Component>
+      <Component Id="LibNLog">
+        <File Id="NLog.dll" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\NLog.dll" KeyPath="yes" />
+        <File Id="NLog.xml" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\NLog.xml" />
+        <File Id="NLog.config" Source="$(var.SolutionDir)\PicPreview\bin\$(var.Configuration)\NLog.config" />
+      </Component>
 		</ComponentGroup>
 	</Fragment>
 </Wix>

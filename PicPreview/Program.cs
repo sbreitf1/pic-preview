@@ -5,6 +5,8 @@ namespace PicPreview
 {
     static class Program
     {
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         public static string AppName
         {
             get
@@ -49,6 +51,8 @@ namespace PicPreview
         [STAThread]
         static void Main()
         {
+            logger.Info("Application startup");
+
             //ShellHelper.GetDirSortOrder(@"G:\Eigene Dateien\Downloads");
 
             /*Microsoft.WindowsAPICodePack.Shell.ShellFile f = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(@"G:\Eigene Dateien\Eigene Bilder\Wallpaper\epic-sunset-wallpapers_6757_1280x800.jpg");
@@ -62,6 +66,7 @@ namespace PicPreview
 
             if (Properties.Settings.Default.FirstStart)
             {
+                logger.Info("Setup for first start");
                 Properties.Settings.Default.Upgrade();
                 Properties.Settings.Default.FirstStart = false;
                 Properties.Settings.Default.Save();
