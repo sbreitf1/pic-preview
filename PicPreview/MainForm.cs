@@ -450,7 +450,7 @@ namespace PicPreview
                 LoadImageResults result = this.imageCollection.LoadImage(path);
                 if (result == LoadImageResults.ImageInCache)
                 {
-                    logger.Info("Image is already cached");
+                    logger.Debug("Image is already cached");
                     // ImageReady-Event was fired and no redraw is necessary here, will be done by ImageReady callback
                     // this prevents showing a loading message when the image has been loaded from cache
                     doRedraw = false;
@@ -486,7 +486,7 @@ namespace PicPreview
 
         private void ImageCollection_ImageReady(ImageCollection sender, string path, Image img)
         {
-            logger.Debug("Image  '" + path + "' is now ready");
+            logger.Debug("Image '" + path + "' is now ready");
 
             this.Invoke(new Action(() =>
             {
@@ -608,6 +608,8 @@ namespace PicPreview
             {
                 try
                 {
+                    logger.Info("Export image '" + this.currentFile + "' as '" + dialog.FileName + "'");
+
                     //TODO invalidate cache after overwriting
 
                     string newExt = Path.GetExtension(dialog.FileName);
@@ -641,6 +643,8 @@ namespace PicPreview
                 }
                 catch (Exception ex)
                 {
+                    logger.Error(ex.GetType().Name + " during image export: " + ex.Message);
+                    logger.Error(ex.StackTrace);
                     MessageBox.Show("Export failed: " + ex.Message, "Save Image", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }

@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PicPreview
 {
-    class OrderedMap<T>
+    public class OrderedMap<T>
     {
         private List<T> elements;
         private Dictionary<T, int> indexLookup;
@@ -59,6 +60,9 @@ namespace PicPreview
         {
             lock (this.elements)
             {
+                if (i < 0 || i >= this.elements.Count)
+                    throw new IndexOutOfRangeException();
+
                 return this.elements[i];
             }
         }

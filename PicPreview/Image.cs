@@ -11,6 +11,9 @@ namespace PicPreview
     class Image : IDisposable
     {
         #region Basic Image Loading and Disposal
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
+        public string SourceFile { get; private set; }
         protected Bitmap bitmap;
         public Bitmap Bitmap { get { return this.bitmap; } }
         protected int width;
@@ -32,10 +35,17 @@ namespace PicPreview
 
         public Image(string file)
         {
+            this.SourceFile = file;
+
             ImageLoader loader = GetImageLoaderFromFileContent(file);
             if (loader == ImageLoader.Unknown)
             {
                 loader = GetImageLoaderFromExtension(Path.GetExtension(file));
+                logger.Debug("Detected image loader '" + loader + "' from extension");
+            }
+            else
+            {
+                logger.Debug("Detected image loader '" + loader + "' from file content");
             }
             switch (loader)
             {
@@ -74,6 +84,7 @@ namespace PicPreview
             this.width = this.bitmap.Width;
             this.height = this.bitmap.Height;
 
+            logger.Debug("Meta data for image '" + file + "': " + this.width + "x" + this.height + " [" + this.bitmap.PixelFormat + "]");
             switch (this.bitmap.PixelFormat)
             {
                 case PixelFormat.Alpha:
@@ -171,12 +182,6 @@ namespace PicPreview
                 this.StopAnimation();
             this.FrameChanged = null;
         }
-
-
-        public long GetMemorySize()
-        {
-            return 4 * this.width * this.height;
-        }
         #endregion
 
         #region Rotation Correction
@@ -200,6 +205,7 @@ namespace PicPreview
                 RotateFlipType rotFlip = GetImageRotation(propItem.Value[0]);
                 if (rotFlip != RotateFlipType.RotateNoneFlipNone)
                 {
+                    logger.Debug("Rotate image '" + this.SourceFile + "': " + rotFlip);
                     this.bitmap.RotateFlip(rotFlip);
                     this.bitmap.RemovePropertyItem(0x0112);
                 }

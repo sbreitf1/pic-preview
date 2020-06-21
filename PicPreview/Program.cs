@@ -52,6 +52,7 @@ namespace PicPreview
         static void Main()
         {
             logger.Info("Application startup");
+            AppDomain.CurrentDomain.UnhandledException += HandleException;
 
             //ShellHelper.GetDirSortOrder(@"G:\Eigene Dateien\Downloads");
 
@@ -73,6 +74,23 @@ namespace PicPreview
             }
 
             Application.Run(new MainForm());
+
+            logger.Info("Application shut down");
+        }
+
+        private static void HandleException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = e.ExceptionObject as Exception;
+            if (ex != null)
+            {
+                logger.Error("Unhandled " + ex.GetType().Name + ": " + ex.Message);
+                logger.Error(ex.StackTrace);
+            }
+            else
+            {
+                logger.Error("Unknown error in global context");
+            }
+            //TODO message box
         }
     }
 }

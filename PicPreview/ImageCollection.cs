@@ -18,6 +18,8 @@ namespace PicPreview
 
     class ImageCollection
     {
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         private int maxLoadedImages = 5;
         private int numBackgroundWorkers = 2;
         private static HashSet<string> imageExtensions;
@@ -27,6 +29,7 @@ namespace PicPreview
         // list of images in current directory for navigation
         private OrderedMap<string> knownImages;
 
+        //TODO somehow maintain character casing in file name keys
         private object imagesLock = new object();
         private List<string> issuedImages;
         private HashSet<string> loadingImages;
@@ -74,6 +77,7 @@ namespace PicPreview
                 this.backgroundImageLoaders[i].IsBackground = true;
                 this.backgroundImageLoaders[i].Start();
             }
+            logger.Info("Started " + this.numBackgroundWorkers + " background worker(s)");
         }
 
 
@@ -83,6 +87,7 @@ namespace PicPreview
             {
                 if (this.CurrentDirectory == null || this.CurrentDirectory.ToLower() != Path.GetDirectoryName(path).ToLower())
                 {
+                    logger.Info("Enter new directory '" + Path.GetDirectoryName(path) + "'");
                     // entering another directory, reload known files for navigation
                     string dir = Path.GetDirectoryName(path);
                     string[] newKnownFiles = GetImageFiles(dir);
@@ -275,6 +280,8 @@ namespace PicPreview
                         if (ex is ThreadAbortException)
                             throw;
 
+                        logger.Error(ex.GetType().Name + " while loading image: " + ex.Message);
+
                         // inform observers
                         this.ImageLoadingError?.Invoke(this, loadPath, ex);
                     }
@@ -303,6 +310,7 @@ namespace PicPreview
                             {
                                 this.loadedImages[removePath].Dispose();
                                 this.loadedImages.Remove(removePath);
+                                logger.Debug("Removed '" + removePath + "' from cache");
                             }
                         }
                     }
