@@ -20,8 +20,9 @@ namespace PicPreview
     {
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        private int maxLoadedImages = 5;
-        private int numBackgroundWorkers = 2;
+        private int maxNavDist = 2;
+        private int maxLoadedImages = 5; //TODO compute from maxNavDist
+        private int numBackgroundWorkers = 4;
         private static HashSet<string> imageExtensions;
 
         public FilePath CurrentDirectory { get; private set; }
@@ -101,6 +102,13 @@ namespace PicPreview
 
                 lock (this.imagesLock)
                 {
+                    // image is not cached, request loading if not already done
+                    if (!this.loadedImages.ContainsKey(path) && !this.issuedImages.Contains(path) && !this.loadingImages.Contains(path))
+                    {
+                        // request loading
+                        this.issuedImages.Add(path);
+                    }
+
                     lock (this.currentImageLock)
                     {
                         // update currently selected image
@@ -115,16 +123,8 @@ namespace PicPreview
                         // set current image from cache
                         return LoadImageResults.ImageInCache;
                     }
-                    else
-                    {
-                        // image is not cached, request loading if not already done
-                        if (!this.issuedImages.Contains(path) && !this.loadingImages.Contains(path))
-                        {
-                            // request loading
-                            this.issuedImages.Add(path);
-                        }
-                        return LoadImageResults.AsyncLoadingStarted;
-                    }
+
+                    return LoadImageResults.AsyncLoadingStarted;
                 }
             }
         }
@@ -277,8 +277,8 @@ namespace PicPreview
                     if (this.issuedImages.Count > 0)
                     {
                         // take oldest requested image from stack
-                        loadPath = this.issuedImages[this.issuedImages.Count - 1];
-                        this.issuedImages.RemoveAt(this.issuedImages.Count - 1);
+                        loadPath = this.issuedImages[0];
+                        this.issuedImages.RemoveAt(0);
                         if (this.loadingImages.Contains(loadPath) || this.loadedImages.ContainsKey(loadPath))
                         {
                             // image has been loaded in the meantime, skip:
@@ -286,8 +286,21 @@ namespace PicPreview
                         }
                         else
                         {
-                            // image still needs to be loaded
-                            this.loadingImages.Add(loadPath);
+                            lock (this.currentImageLock)
+                            {
+                                int dist = ComputeNavigationDistance(loadPath, this.currentFile);
+                                if (dist <= maxNavDist)
+                                {
+                                    // image still needs to be loaded
+                                    this.loadingImages.Add(loadPath);
+                                }
+                                else
+                                {
+                                    // the navigation has changed in the meantime, no need to cache this image anymore
+                                    logger.Debug("Skipped caching of '" + loadPath + "' due to navigation change");
+                                    loadPath = null;
+                                }
+                            }
                         }
                     }
                 }
@@ -338,11 +351,10 @@ namespace PicPreview
                             List<FilePath> removeItems = new List<FilePath>();
                             lock (this.currentImageLock)
                             {
-                                int maxDist = (this.maxLoadedImages - 1) / 2;
                                 foreach (KeyValuePair<FilePath, Image> kvp in this.loadedImages)
                                 {
                                     int dist = ComputeNavigationDistance(kvp.Key, this.currentFile);
-                                    if (dist > maxDist)
+                                    if (dist > maxNavDist)
                                         removeItems.Add(kvp.Key);
                                 }
                             }
