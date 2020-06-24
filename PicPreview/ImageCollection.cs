@@ -12,8 +12,8 @@ namespace PicPreview
         ImageInCache = 2
     }
 
-    delegate void ImageReadyHandler(ImageCollection sender, string file, Image img);
-    delegate void ImageLoadingErrorHandler(ImageCollection sender, string file, Exception ex);
+    delegate void ImageReadyHandler(ImageCollection sender, FilePath file, Image img);
+    delegate void ImageLoadingErrorHandler(ImageCollection sender, FilePath file, Exception ex);
 
 
     class ImageCollection
@@ -24,26 +24,25 @@ namespace PicPreview
         private int numBackgroundWorkers = 2;
         private static HashSet<string> imageExtensions;
 
-        public string CurrentDirectory { get; private set; }
+        public FilePath CurrentDirectory { get; private set; }
 
         // list of images in current directory for navigation
-        private OrderedMap<string> knownImages;
+        private OrderedMap<FilePath> knownImages;
 
-        //TODO somehow maintain character casing in file name keys
         private object imagesLock = new object();
-        private List<string> issuedImages;
-        private HashSet<string> loadingImages;
-        private Dictionary<string, Image> loadedImages;
+        private List<FilePath> issuedImages;
+        private HashSet<FilePath> loadingImages;
+        private Dictionary<FilePath, Image> loadedImages;
 
         private Thread[] backgroundImageLoaders;
 
         private object currentImageLock = new object();
-        private string currentFile;
+        private FilePath currentFile;
 
         /// <summary>
         /// Returns whether navigation is available for the current image location.
         /// </summary>
-        public bool CanSwipeImages { get { return !string.IsNullOrWhiteSpace(this.CurrentDirectory) && Directory.Exists(this.CurrentDirectory); } }
+        public bool CanSwipeImages { get { return !this.CurrentDirectory.IsEmpty && Directory.Exists(this.CurrentDirectory); } }
 
         public event ImageReadyHandler ImageReady;
         public event ImageLoadingErrorHandler ImageLoadingError;
@@ -64,10 +63,10 @@ namespace PicPreview
 
         public ImageCollection()
         {
-            this.knownImages = new OrderedMap<string>();
-            this.issuedImages = new List<string>();
-            this.loadingImages = new HashSet<string>();
-            this.loadedImages = new Dictionary<string, Image>();
+            this.knownImages = new OrderedMap<FilePath>();
+            this.issuedImages = new List<FilePath>();
+            this.loadingImages = new HashSet<FilePath>();
+            this.loadedImages = new Dictionary<FilePath, Image>();
             this.currentFile = null;
 
             this.backgroundImageLoaders = new Thread[this.numBackgroundWorkers];
@@ -81,22 +80,22 @@ namespace PicPreview
         }
 
 
-        public LoadImageResults LoadImage(string path)
+        public LoadImageResults LoadImage(FilePath path)
         {
             lock (this.knownImages)
             {
-                if (this.CurrentDirectory == null || this.CurrentDirectory.ToLower() != Path.GetDirectoryName(path).ToLower())
+                if (this.CurrentDirectory == null || this.CurrentDirectory != path.Dir)
                 {
-                    logger.Info("Enter new directory '" + Path.GetDirectoryName(path) + "'");
+                    logger.Info("Enter new directory '" + path.Dir + "'");
                     // entering another directory, reload known files for navigation
-                    string dir = Path.GetDirectoryName(path);
-                    string[] newKnownFiles = GetImageFiles(dir);
+                    FilePath dir = path.Dir;
+                    FilePath[] newKnownFiles = GetImageFiles(dir);
                     lock (this.knownImages)
                     {
                         this.CurrentDirectory = dir;
                         this.knownImages.Clear();
-                        foreach (string file in newKnownFiles)
-                            this.knownImages.Add(file.ToLower());
+                        foreach (FilePath file in newKnownFiles)
+                            this.knownImages.Add(file);
                     }
                 }
 
@@ -110,19 +109,19 @@ namespace PicPreview
                     }
 
                     // lookup image in cached images
-                    if (this.loadedImages.TryGetValue(path.ToLower(), out Image img))
+                    if (this.loadedImages.TryGetValue(path, out Image img))
                     {
-                        this.ImageReady?.Invoke(this, path.ToLower(), img);
+                        this.ImageReady?.Invoke(this, path, img);
                         // set current image from cache
                         return LoadImageResults.ImageInCache;
                     }
                     else
                     {
                         // image is not cached, request loading if not already done
-                        if (!this.issuedImages.Contains(path.ToLower()) && !this.loadingImages.Contains(path.ToLower()))
+                        if (!this.issuedImages.Contains(path) && !this.loadingImages.Contains(path))
                         {
                             // request loading
-                            this.issuedImages.Add(path.ToLower());
+                            this.issuedImages.Add(path);
                         }
                         return LoadImageResults.AsyncLoadingStarted;
                     }
@@ -132,18 +131,18 @@ namespace PicPreview
 
         private void RequestPreCacheOfSurroundingImages()
         {
-            if (this.knownImages.TryGetIndex(this.currentFile.ToLower(), out int index))
+            if (this.knownImages.TryGetIndex(this.currentFile, out int index))
             {
                 if (this.knownImages.Count <= this.maxLoadedImages)
                 {
                     // all images of directory fit into cache
                     for (int i = 0; i < this.knownImages.Count; i++)
                     {
-                        string path = this.knownImages.Get(i);
-                        if (!this.issuedImages.Contains(path.ToLower()) && !this.loadingImages.Contains(path.ToLower()) && !this.loadedImages.ContainsKey(path.ToLower()))
+                        FilePath path = this.knownImages.Get(i);
+                        if (!this.issuedImages.Contains(path) && !this.loadingImages.Contains(path) && !this.loadedImages.ContainsKey(path))
                         {
                             // request pre-cache loading
-                            this.issuedImages.Add(path.ToLower());
+                            this.issuedImages.Add(path);
                         }
                     }
                 }
@@ -153,39 +152,81 @@ namespace PicPreview
                     int maxDist = (this.maxLoadedImages - 1) / 2;
                     for (int i = -maxDist; i <= maxDist; i++)
                     {
-                        string path = this.knownImages.Get((this.knownImages.Count + index + i) % this.knownImages.Count);
-                        if (!this.issuedImages.Contains(path.ToLower()) && !this.loadingImages.Contains(path.ToLower()) && !this.loadedImages.ContainsKey(path.ToLower()))
+                        FilePath path = this.knownImages.Get((this.knownImages.Count + index + i) % this.knownImages.Count);
+                        if (!this.issuedImages.Contains(path) && !this.loadingImages.Contains(path) && !this.loadedImages.ContainsKey(path))
                         {
                             // request pre-cache loading
-                            this.issuedImages.Add(path.ToLower());
+                            this.issuedImages.Add(path);
                         }
                     }
                 }
             }
         }
 
-        private static string[] GetImageFiles(string dir)
+        public void ForceReloadCurrentImage()
+        {
+            lock (this.imagesLock)
+            {
+                lock (this.currentImageLock)
+                {
+                    InnerForceReloadCurrentImage();
+                }
+            }
+        }
+
+        private void InnerForceReloadCurrentImage()
+        {
+            //TODO reload current image
+        }
+
+        public void InvalidateCache(FilePath file)
+        {
+            lock (this.imagesLock)
+            {
+                lock (this.currentImageLock)
+                {
+                    if (this.loadedImages.TryGetValue(file, out Image image))
+                    {
+                        if (file == this.currentFile)
+                        {
+                            ForceReloadCurrentImage();
+                        }
+                        else
+                        {
+                            this.loadedImages[file].Dispose();
+                            this.loadedImages.Remove(file);
+                            if (!this.issuedImages.Contains(file) && !this.loadingImages.Contains(file))
+                            {
+                                this.issuedImages.Add(file);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static FilePath[] GetImageFiles(FilePath dir)
         {
             string[] rawFiles = Directory.GetFiles(dir);
-            List<string> files = new List<string>(rawFiles.Length);
+            List<FilePath> files = new List<FilePath>(rawFiles.Length);
             foreach (string rawFile in rawFiles)
                 if (IsImageFile(rawFile))
                     files.Add(rawFile);
             return files.ToArray();
         }
 
-        private static bool IsImageFile(string file)
+        private static bool IsImageFile(FilePath file)
         {
-            string ext = Path.GetExtension(file).ToLower();
+            string ext = file.Extension.ToLower();
             return imageExtensions.Contains(ext);
         }
 
-        public string GetNextImage()
+        public FilePath GetNextImage()
         {
             lock (this.knownImages)
             {
                 //TODO update file index on not found
-                if (this.knownImages.TryGetIndex(this.currentFile.ToLower(), out int index))
+                if (this.knownImages.TryGetIndex(this.currentFile, out int index))
                 {
                     return this.knownImages.Get((index + 1) % this.knownImages.Count);
                 }
@@ -194,12 +235,12 @@ namespace PicPreview
             }
         }
 
-        public string GetPreviousImage()
+        public FilePath GetPreviousImage()
         {
             lock (this.knownImages)
             {
                 //TODO update file index on not found
-                if (this.knownImages.TryGetIndex(this.currentFile.ToLower(), out int index))
+                if (this.knownImages.TryGetIndex(this.currentFile, out int index))
                 {
                     return this.knownImages.Get((index + this.knownImages.Count - 1) % this.knownImages.Count);
                 }
@@ -208,14 +249,14 @@ namespace PicPreview
             }
         }
 
-        private int ComputeNavigationDistance(string path1, string path2)
+        private int ComputeNavigationDistance(FilePath path1, FilePath path2)
         {
             int index1, index2;
-            if (!this.knownImages.TryGetIndex(path1.ToLower(), out index1))
+            if (!this.knownImages.TryGetIndex(path1, out index1))
             {
                 return int.MaxValue;
             }
-            if (!this.knownImages.TryGetIndex(path2.ToLower(), out index2))
+            if (!this.knownImages.TryGetIndex(path2, out index2))
             {
                 return int.MaxValue;
             }
@@ -230,7 +271,7 @@ namespace PicPreview
         {
             while (true)
             {
-                string loadPath = null;
+                FilePath loadPath = null;
                 lock (this.imagesLock)
                 {
                     if (this.issuedImages.Count > 0)
@@ -238,7 +279,7 @@ namespace PicPreview
                         // take oldest requested image from stack
                         loadPath = this.issuedImages[this.issuedImages.Count - 1];
                         this.issuedImages.RemoveAt(this.issuedImages.Count - 1);
-                        if (this.loadingImages.Contains(loadPath.ToLower()) || this.loadedImages.ContainsKey(loadPath.ToLower()))
+                        if (this.loadingImages.Contains(loadPath) || this.loadedImages.ContainsKey(loadPath))
                         {
                             // image has been loaded in the meantime, skip:
                             loadPath = null;
@@ -246,7 +287,7 @@ namespace PicPreview
                         else
                         {
                             // image still needs to be loaded
-                            this.loadingImages.Add(loadPath.ToLower());
+                            this.loadingImages.Add(loadPath);
                         }
                     }
                 }
@@ -262,8 +303,8 @@ namespace PicPreview
                         lock (this.imagesLock)
                         {
                             // success! update image in loaded images list
-                            this.loadingImages.Remove(loadPath.ToLower());
-                            this.loadedImages.Add(loadPath.ToLower(), img);
+                            this.loadingImages.Remove(loadPath);
+                            this.loadedImages.Add(loadPath, img);
                         }
 
                         // inform observers
@@ -274,7 +315,7 @@ namespace PicPreview
                         lock (this.imagesLock)
                         {
                             // only take image from processing list in case of error
-                            this.loadingImages.Remove(loadPath.ToLower());
+                            this.loadingImages.Remove(loadPath);
                         }
 
                         if (ex is ThreadAbortException)
@@ -294,11 +335,11 @@ namespace PicPreview
                     {
                         if (this.loadedImages.Count > this.maxLoadedImages)
                         {
-                            List<string> removeItems = new List<string>();
+                            List<FilePath> removeItems = new List<FilePath>();
                             lock (this.currentImageLock)
                             {
                                 int maxDist = (this.maxLoadedImages - 1) / 2;
-                                foreach (KeyValuePair<string, Image> kvp in this.loadedImages)
+                                foreach (KeyValuePair<FilePath, Image> kvp in this.loadedImages)
                                 {
                                     int dist = ComputeNavigationDistance(kvp.Key, this.currentFile);
                                     if (dist > maxDist)
@@ -306,7 +347,7 @@ namespace PicPreview
                                 }
                             }
 
-                            foreach (string removePath in removeItems)
+                            foreach (FilePath removePath in removeItems)
                             {
                                 this.loadedImages[removePath].Dispose();
                                 this.loadedImages.Remove(removePath);

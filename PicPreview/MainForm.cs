@@ -13,6 +13,8 @@ namespace PicPreview
         #region Initialization and Disposal
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
+        private static TimeSpan hqRedrawDuration = TimeSpan.FromMilliseconds(150);
+
         public MainForm()
         {
             InitializeComponent();
@@ -164,9 +166,9 @@ namespace PicPreview
             if (this.currentFile != null)
             {
                 if (this.currentImage == null || this.isImageLoading || (this.zoom == 1))
-                    this.Text = Path.GetFileName(this.currentFile) + " - " + Program.AppName;
+                    this.Text = this.currentFile.FileName + " - " + Program.AppName;
                 else
-                    this.Text = Path.GetFileName(this.currentFile) + " (" + Math.Round(100 * this.zoom) + "%) - " + Program.AppName;
+                    this.Text = this.currentFile.FileName + " (" + Math.Round(100 * this.zoom) + "%) - " + Program.AppName;
             }
             else
                 this.Text = Program.AppName;
@@ -232,8 +234,15 @@ namespace PicPreview
             }
         }
 
-        private void ChangeZoom(float newZoom, Point fix)
+        /// <summary>
+        /// Changes the current zoom level. If fals is returned, a higher zoom level must be selected.
+        /// </summary>
+        /// <param name="newZoom"></param>
+        /// <param name="fix"></param>
+        /// <returns></returns>
+        private bool ChangeZoom(float newZoom, Point fix)
         {
+            bool zoomIn = (newZoom > this.zoom);
             this.zoomMode = ImageZoomModes.Manual;
 
             float oldZoom = this.zoom;
@@ -246,7 +255,16 @@ namespace PicPreview
 
             ValidateZoom();
 
+            if(zoomIn && this.zoomMode != ImageZoomModes.Manual)
+            {
+                // the validation has reset the zoom mode after zooming in
+                // this happens when the zoom has not been changed due to rounding errors
+                // e.G.: zoom level in Fill mode is 0.499, next zoom level is 0.5 but rounded image size remains the same
+                return false;
+            }
+
             RedrawImage(RedrawReason.UserInteraction);
+            return true;
         }
 
         private void ZoomIn(Point fix)
@@ -265,7 +283,11 @@ namespace PicPreview
                 }
             }
 
-            ChangeZoom(targetZoom, fix);
+            if (!ChangeZoom(targetZoom, fix))
+            {
+                // a higher zoom level is required
+                ZoomIn(fix);
+            }
         }
         private void ZoomIn()
         {
@@ -422,13 +444,13 @@ namespace PicPreview
         #region Image Loading
         ImageCollection imageCollection;
         // keep image state for ui thread
-        private string currentFile;
+        private FilePath currentFile;
         private bool isImageLoading;
         private Image currentImage;
         private Exception loadException;
 
 
-        private void LoadImage(string path)
+        private void LoadImage(FilePath path)
         {
             if (path == null)
             {
@@ -484,13 +506,13 @@ namespace PicPreview
         }
 
 
-        private void ImageCollection_ImageReady(ImageCollection sender, string path, Image img)
+        private void ImageCollection_ImageReady(ImageCollection sender, FilePath path, Image img)
         {
             logger.Debug("Image '" + path + "' is now ready");
 
             this.Invoke(new Action(() =>
             {
-                if (path.ToLower() == this.currentFile.ToLower())
+                if (path == this.currentFile)
                 {
                     this.isImageLoading = false;
                     this.loadException = null;
@@ -526,14 +548,14 @@ namespace PicPreview
         }
 
 
-        private void ImageCollection_ImageLoadingError(ImageCollection sender, string path, Exception ex)
+        private void ImageCollection_ImageLoadingError(ImageCollection sender, FilePath path, Exception ex)
         {
             logger.Error("Unexpected " + ex.GetType().Name + " when loading image '" + path + "': " + ex.Message);
             logger.Error(ex.StackTrace);
 
             this.Invoke(new Action(() =>
             {
-                if (path.ToLower() == this.currentFile.ToLower())
+                if (path == this.currentFile)
                 {
                     this.isImageLoading = false;
                     this.loadException = ex;
@@ -548,7 +570,7 @@ namespace PicPreview
         #region Image Exporting
         private void tsbSave_ButtonClick(object sender, EventArgs e)
         {
-            string currentFileName = Path.GetFileName(this.currentFile);
+            string currentFileName = this.currentFile.FileName;
 
             if (this.currentImage.HasAnimation)
             {
@@ -610,8 +632,6 @@ namespace PicPreview
                 {
                     logger.Info("Export image '" + this.currentFile + "' as '" + dialog.FileName + "'");
 
-                    //TODO invalidate cache after overwriting
-
                     string newExt = Path.GetExtension(dialog.FileName);
                     switch (newExt.ToLower())
                     {
@@ -640,6 +660,9 @@ namespace PicPreview
                             MessageBox.Show("Unsupported export format.", "Save Image", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             break;
                     }
+
+                    // invalidate cache of changed file
+                    this.imageCollection.InvalidateCache(dialog.FileName);
                 }
                 catch (Exception ex)
                 {
@@ -650,7 +673,7 @@ namespace PicPreview
             }
         }
 
-        private void ExportPNG(string file)
+        private void ExportPNG(FilePath file)
         {
             using (FileStream stream = new FileStream(file, FileMode.Create, FileAccess.ReadWrite))
             {
@@ -658,7 +681,7 @@ namespace PicPreview
             }
         }
 
-        private void ExportJPG(string file)
+        private void ExportJPG(FilePath file)
         {
             if (this.currentImage.HasAlphaChannel)
             {
@@ -694,7 +717,7 @@ namespace PicPreview
             }
         }
 
-        private void ExportWEBP(string file)
+        private void ExportWEBP(FilePath file)
         {
             ExportQualityDialog dialog = new ExportQualityDialog();
             dialog.Text = "Export WebP";
@@ -720,7 +743,7 @@ namespace PicPreview
             }
         }
 
-        private void ExportBMP(string file)
+        private void ExportBMP(FilePath file)
         {
             if (this.currentImage.HasAlphaChannel)
             {
@@ -734,7 +757,7 @@ namespace PicPreview
             }
         }
 
-        private void ExportGIF(string file)
+        private void ExportGIF(FilePath file)
         {
             if (this.currentImage.HasAlphaChannel)
             {
@@ -1070,7 +1093,7 @@ namespace PicPreview
 
             if (reason == RedrawReason.UserInteraction && Properties.Settings.Default.FastRenderInteraction)
             {
-                this.hqRedrawAt = DateTime.Now.AddMilliseconds(250);
+                this.hqRedrawAt = DateTime.Now + hqRedrawDuration;
             }
         }
 

@@ -13,7 +13,7 @@ namespace PicPreview
         #region Basic Image Loading and Disposal
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public string SourceFile { get; private set; }
+        public FilePath SourceFile { get; private set; }
         protected Bitmap bitmap;
         public Bitmap Bitmap { get { return this.bitmap; } }
         protected int width;
@@ -33,14 +33,14 @@ namespace PicPreview
             WEBP
         }
 
-        public Image(string file)
+        public Image(FilePath file)
         {
             this.SourceFile = file;
 
             ImageLoader loader = GetImageLoaderFromFileContent(file);
             if (loader == ImageLoader.Unknown)
             {
-                loader = GetImageLoaderFromExtension(Path.GetExtension(file));
+                loader = GetImageLoaderFromExtension(file.Extension);
                 logger.Debug("Detected image loader '" + loader + "' from extension");
             }
             else
@@ -106,7 +106,7 @@ namespace PicPreview
             ReadAnimation();
         }
 
-        private static ImageLoader GetImageLoaderFromFileContent(string file)
+        private static ImageLoader GetImageLoaderFromFileContent(FilePath file)
         {
             try
             {

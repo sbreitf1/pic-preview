@@ -75,6 +75,7 @@
       <DependentUpon>ExportQualityDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="FileAssociationHelper.cs" />
+    <Compile Include="FilePath.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageCollection.cs" />
     <Compile Include="MainForm.cs">
