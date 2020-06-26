@@ -30,16 +30,17 @@
         {
             this.btnAssociate = new System.Windows.Forms.Button();
             this.gbxRendering = new System.Windows.Forms.GroupBox();
+            this.cbxFastRenderAnimations = new System.Windows.Forms.CheckBox();
+            this.cbxRenderTransparencyGrid = new System.Windows.Forms.CheckBox();
+            this.cbxFastRenderInteraction = new System.Windows.Forms.CheckBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.cbxMinimizeFilter = new System.Windows.Forms.ComboBox();
+            this.cbxMaximizeFilter = new System.Windows.Forms.ComboBox();
             this.gbxIntegration = new System.Windows.Forms.GroupBox();
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOK = new System.Windows.Forms.Button();
-            this.cbxMaximizeFilter = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.cbxMinimizeFilter = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.cbxFastRenderInteraction = new System.Windows.Forms.CheckBox();
-            this.cbxFastRenderAnimations = new System.Windows.Forms.CheckBox();
-            this.cbxRenderTransparencyGrid = new System.Windows.Forms.CheckBox();
+            this.btnAbout = new System.Windows.Forms.Button();
             this.gbxRendering.SuspendLayout();
             this.gbxIntegration.SuspendLayout();
             this.SuspendLayout();
@@ -73,6 +74,80 @@
             this.gbxRendering.TabIndex = 1;
             this.gbxRendering.TabStop = false;
             this.gbxRendering.Text = "Rendering";
+            // 
+            // cbxFastRenderAnimations
+            // 
+            this.cbxFastRenderAnimations.AutoSize = true;
+            this.cbxFastRenderAnimations.Location = new System.Drawing.Point(9, 75);
+            this.cbxFastRenderAnimations.Name = "cbxFastRenderAnimations";
+            this.cbxFastRenderAnimations.Size = new System.Drawing.Size(144, 17);
+            this.cbxFastRenderAnimations.TabIndex = 4;
+            this.cbxFastRenderAnimations.Text = "Fast rendered animations";
+            this.cbxFastRenderAnimations.UseVisualStyleBackColor = true;
+            // 
+            // cbxRenderTransparencyGrid
+            // 
+            this.cbxRenderTransparencyGrid.AutoSize = true;
+            this.cbxRenderTransparencyGrid.Location = new System.Drawing.Point(9, 129);
+            this.cbxRenderTransparencyGrid.Name = "cbxRenderTransparencyGrid";
+            this.cbxRenderTransparencyGrid.Size = new System.Drawing.Size(145, 17);
+            this.cbxRenderTransparencyGrid.TabIndex = 4;
+            this.cbxRenderTransparencyGrid.Text = "Render transparency grid";
+            this.cbxRenderTransparencyGrid.UseVisualStyleBackColor = true;
+            // 
+            // cbxFastRenderInteraction
+            // 
+            this.cbxFastRenderInteraction.AutoSize = true;
+            this.cbxFastRenderInteraction.Location = new System.Drawing.Point(9, 102);
+            this.cbxFastRenderInteraction.Name = "cbxFastRenderInteraction";
+            this.cbxFastRenderInteraction.Size = new System.Drawing.Size(143, 17);
+            this.cbxFastRenderInteraction.TabIndex = 4;
+            this.cbxFastRenderInteraction.Text = "Fast rendered interaction";
+            this.cbxFastRenderInteraction.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(6, 49);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(72, 13);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "Minimize Filter";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 22);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(78, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Maximize Filter:";
+            // 
+            // cbxMinimizeFilter
+            // 
+            this.cbxMinimizeFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxMinimizeFilter.FormattingEnabled = true;
+            this.cbxMinimizeFilter.Items.AddRange(new object[] {
+            "Nearest Neighbor (Fastest)",
+            "Linear",
+            "Cubic (Nicest)"});
+            this.cbxMinimizeFilter.Location = new System.Drawing.Point(130, 46);
+            this.cbxMinimizeFilter.Name = "cbxMinimizeFilter";
+            this.cbxMinimizeFilter.Size = new System.Drawing.Size(185, 21);
+            this.cbxMinimizeFilter.TabIndex = 0;
+            // 
+            // cbxMaximizeFilter
+            // 
+            this.cbxMaximizeFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbxMaximizeFilter.FormattingEnabled = true;
+            this.cbxMaximizeFilter.Items.AddRange(new object[] {
+            "Nearest Neighbor (Fastest)",
+            "Linear",
+            "Cubic (Nicest)"});
+            this.cbxMaximizeFilter.Location = new System.Drawing.Point(130, 19);
+            this.cbxMaximizeFilter.Name = "cbxMaximizeFilter";
+            this.cbxMaximizeFilter.Size = new System.Drawing.Size(185, 21);
+            this.cbxMaximizeFilter.TabIndex = 0;
             // 
             // gbxIntegration
             // 
@@ -108,79 +183,15 @@
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
             // 
-            // cbxMaximizeFilter
+            // btnAbout
             // 
-            this.cbxMaximizeFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbxMaximizeFilter.FormattingEnabled = true;
-            this.cbxMaximizeFilter.Items.AddRange(new object[] {
-            "Nearest Neighbor (Fastest)",
-            "Linear",
-            "Cubic (Nicest)"});
-            this.cbxMaximizeFilter.Location = new System.Drawing.Point(130, 19);
-            this.cbxMaximizeFilter.Name = "cbxMaximizeFilter";
-            this.cbxMaximizeFilter.Size = new System.Drawing.Size(185, 21);
-            this.cbxMaximizeFilter.TabIndex = 0;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 22);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(78, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Maximize Filter:";
-            // 
-            // cbxMinimizeFilter
-            // 
-            this.cbxMinimizeFilter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbxMinimizeFilter.FormattingEnabled = true;
-            this.cbxMinimizeFilter.Items.AddRange(new object[] {
-            "Nearest Neighbor (Fastest)",
-            "Linear",
-            "Cubic (Nicest)"});
-            this.cbxMinimizeFilter.Location = new System.Drawing.Point(130, 46);
-            this.cbxMinimizeFilter.Name = "cbxMinimizeFilter";
-            this.cbxMinimizeFilter.Size = new System.Drawing.Size(185, 21);
-            this.cbxMinimizeFilter.TabIndex = 0;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 49);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(72, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Minimize Filter";
-            // 
-            // cbxFastRenderInteraction
-            // 
-            this.cbxFastRenderInteraction.AutoSize = true;
-            this.cbxFastRenderInteraction.Location = new System.Drawing.Point(9, 102);
-            this.cbxFastRenderInteraction.Name = "cbxFastRenderInteraction";
-            this.cbxFastRenderInteraction.Size = new System.Drawing.Size(143, 17);
-            this.cbxFastRenderInteraction.TabIndex = 4;
-            this.cbxFastRenderInteraction.Text = "Fast rendered interaction";
-            this.cbxFastRenderInteraction.UseVisualStyleBackColor = true;
-            // 
-            // cbxFastRenderAnimations
-            // 
-            this.cbxFastRenderAnimations.AutoSize = true;
-            this.cbxFastRenderAnimations.Location = new System.Drawing.Point(9, 75);
-            this.cbxFastRenderAnimations.Name = "cbxFastRenderAnimations";
-            this.cbxFastRenderAnimations.Size = new System.Drawing.Size(144, 17);
-            this.cbxFastRenderAnimations.TabIndex = 4;
-            this.cbxFastRenderAnimations.Text = "Fast rendered animations";
-            this.cbxFastRenderAnimations.UseVisualStyleBackColor = true;
-            // 
-            // cbxRenderTransparencyGrid
-            // 
-            this.cbxRenderTransparencyGrid.AutoSize = true;
-            this.cbxRenderTransparencyGrid.Location = new System.Drawing.Point(9, 129);
-            this.cbxRenderTransparencyGrid.Name = "cbxRenderTransparencyGrid";
-            this.cbxRenderTransparencyGrid.Size = new System.Drawing.Size(145, 17);
-            this.cbxRenderTransparencyGrid.TabIndex = 4;
-            this.cbxRenderTransparencyGrid.Text = "Render transparency grid";
-            this.cbxRenderTransparencyGrid.UseVisualStyleBackColor = true;
+            this.btnAbout.Location = new System.Drawing.Point(12, 230);
+            this.btnAbout.Name = "btnAbout";
+            this.btnAbout.Size = new System.Drawing.Size(75, 23);
+            this.btnAbout.TabIndex = 5;
+            this.btnAbout.Text = "About";
+            this.btnAbout.UseVisualStyleBackColor = true;
+            this.btnAbout.Click += new System.EventHandler(this.btnAbout_Click);
             // 
             // ConfigDialog
             // 
@@ -189,6 +200,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(345, 265);
+            this.Controls.Add(this.btnAbout);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.gbxIntegration);
@@ -221,5 +233,6 @@
         private System.Windows.Forms.CheckBox cbxFastRenderInteraction;
         private System.Windows.Forms.CheckBox cbxFastRenderAnimations;
         private System.Windows.Forms.CheckBox cbxRenderTransparencyGrid;
+        private System.Windows.Forms.Button btnAbout;
     }
 }

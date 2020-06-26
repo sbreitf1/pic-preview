@@ -166,5 +166,17 @@ namespace PicPreview.Properties {
                 this["RenderTransparencyGrid"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int FunHighscore {
+            get {
+                return ((int)(this["FunHighscore"]));
+            }
+            set {
+                this["FunHighscore"] = value;
+            }
+        }
     }
 }

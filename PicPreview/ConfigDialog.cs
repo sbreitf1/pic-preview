@@ -11,7 +11,6 @@ namespace PicPreview
         {
             InitializeComponent();
             this.Icon = Resources.app_options;
-            this.Text += " [" + Program.AppName + " " + Program.AppVersion.NiceString() + "]";
 
             cbxMaximizeFilter.SelectedIndex = GetListIndex(Settings.Default.MaximizeFilter);
             cbxMinimizeFilter.SelectedIndex = GetListIndex(Settings.Default.MinimizeFilter);
@@ -76,6 +75,12 @@ namespace PicPreview
                 case 2: return InterpolationMode.HighQualityBicubic;
                 default: return InterpolationMode.NearestNeighbor;
             }
+        }
+
+        private void btnAbout_Click(object sender, EventArgs e)
+        {
+            AboutDialog dialog = new AboutDialog();
+            dialog.ShowDialog();
         }
     }
 }
