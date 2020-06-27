@@ -84,6 +84,12 @@
     <Compile Include="FilePath.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="ImageCollection.cs" />
+    <Compile Include="LicensesDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LicensesDialog.Designer.cs">
+      <DependentUpon>LicensesDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -104,6 +110,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ExportQualityDialog.resx">
       <DependentUpon>ExportQualityDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LicensesDialog.resx">
+      <DependentUpon>LicensesDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
@@ -185,6 +194,7 @@
     <Content Include="libwebp_x86.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Resources\text.ico" />
     <None Include="Resources\about-logo.png" />
     <None Include="Resources\update.ico" />
     <None Include="Resources\app-options.ico" />

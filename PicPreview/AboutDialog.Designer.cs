@@ -138,6 +138,7 @@
             this.btnLicenses.TabIndex = 9;
             this.btnLicenses.Text = "Licenses";
             this.btnLicenses.UseVisualStyleBackColor = true;
+            this.btnLicenses.Click += new System.EventHandler(this.btnLicenses_Click);
             // 
             // lblPoints
             // 

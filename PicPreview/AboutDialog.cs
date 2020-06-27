@@ -151,6 +151,12 @@ namespace PicPreview
             }
         }
 
+        private void btnLicenses_Click(object sender, EventArgs e)
+        {
+            LicensesDialog dialog = new LicensesDialog();
+            dialog.ShowDialog();
+        }
+
         private void AboutDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
             tmrFun.Stop();
