@@ -78,6 +78,7 @@
             this.toolStripStatusLabel2});
             this.statusStrip.Location = new System.Drawing.Point(0, 408);
             this.statusStrip.Name = "statusStrip";
+            this.statusStrip.ShowItemToolTips = true;
             this.statusStrip.Size = new System.Drawing.Size(707, 43);
             this.statusStrip.TabIndex = 0;
             this.statusStrip.Text = "statusStrip1";
@@ -98,6 +99,7 @@
             this.tsbOptions.Name = "tsbOptions";
             this.tsbOptions.Size = new System.Drawing.Size(37, 41);
             this.tsbOptions.Text = "toolStripSplitButton1";
+            this.tsbOptions.ToolTipText = "Options";
             this.tsbOptions.ButtonClick += new System.EventHandler(this.tsbOptions_ButtonClick);
             // 
             // toolStripStatusLabel5
@@ -151,6 +153,7 @@
             this.tsbPrevious.Name = "tsbPrevious";
             this.tsbPrevious.Size = new System.Drawing.Size(37, 41);
             this.tsbPrevious.Text = "toolStripSplitButton1";
+            this.tsbPrevious.ToolTipText = "Previous image";
             this.tsbPrevious.ButtonClick += new System.EventHandler(this.tsbPrevious_ButtonClick);
             // 
             // tsbNext
@@ -164,6 +167,7 @@
             this.tsbNext.Name = "tsbNext";
             this.tsbNext.Size = new System.Drawing.Size(37, 41);
             this.tsbNext.Text = "toolStripSplitButton1";
+            this.tsbNext.ToolTipText = "Next image";
             this.tsbNext.ButtonClick += new System.EventHandler(this.tsbNext_ButtonClick);
             // 
             // toolStripStatusLabel4
@@ -184,6 +188,7 @@
             this.tsbRotateCCW.Name = "tsbRotateCCW";
             this.tsbRotateCCW.Size = new System.Drawing.Size(37, 41);
             this.tsbRotateCCW.Text = "toolStripSplitButton1";
+            this.tsbRotateCCW.ToolTipText = "Rotate counterclockwise";
             // 
             // tsbRotateCW
             // 
@@ -196,6 +201,7 @@
             this.tsbRotateCW.Name = "tsbRotateCW";
             this.tsbRotateCW.Size = new System.Drawing.Size(37, 41);
             this.tsbRotateCW.Text = "toolStripSplitButton1";
+            this.tsbRotateCW.ToolTipText = "Rotate clockwise";
             // 
             // tsbImageEffects
             // 
@@ -208,6 +214,7 @@
             this.tsbImageEffects.Name = "tsbImageEffects";
             this.tsbImageEffects.Size = new System.Drawing.Size(57, 41);
             this.tsbImageEffects.Text = "toolStripSplitButton1";
+            this.tsbImageEffects.ToolTipText = "Edit";
             // 
             // tsbSave
             // 
@@ -220,6 +227,7 @@
             this.tsbSave.Name = "tsbSave";
             this.tsbSave.Size = new System.Drawing.Size(37, 41);
             this.tsbSave.Text = "toolStripSplitButton1";
+            this.tsbSave.ToolTipText = "Save as";
             this.tsbSave.ButtonClick += new System.EventHandler(this.tsbSave_ButtonClick);
             // 
             // toolStripStatusLabel2

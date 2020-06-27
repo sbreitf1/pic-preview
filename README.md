@@ -11,14 +11,12 @@ Image Preview application for Windows. Supports a wide spectrum of image formats
 # Open Features & Issues
 
 - Info dialog for current image properties
-- About and Licenses dialog
-- Detect changed images and invalidate cache (F5 shortcut to enforce reload)
+- F5 shortcut to enforce reload
 - Allow HQ Redraw on ShortLivedMessage for smaller images
 - Register Application in installer
 - Button to delete current image
 - BUG: Drag cursor is shown for zoomed images on animation trackbar
 - Maintain file order as seen in explorer for left/right navigation
-- Button ToolTips
 - Use fast-loading thumbnail images for blured preview while loading image
 - i18n
 - Dark Theme

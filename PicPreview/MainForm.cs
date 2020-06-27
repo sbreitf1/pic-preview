@@ -105,6 +105,9 @@ namespace PicPreview
                 case Keys.Space:
                     btnAnimation.PerformClick();
                     return true;
+                case Keys.F5:
+                    this.imageCollection.ForceReloadCurrentImage();
+                    break;
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
