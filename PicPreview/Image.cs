@@ -224,6 +224,7 @@ namespace PicPreview
                 case 5: return RotateFlipType.Rotate90FlipX;
                 case 6: return RotateFlipType.Rotate90FlipNone;
                 case 7: return RotateFlipType.Rotate270FlipX;
+                case 8: return RotateFlipType.Rotate270FlipNone;
                 default: return RotateFlipType.RotateNoneFlipNone;
             }
         }

@@ -21,9 +21,9 @@ namespace PicPreviewTests
             Assert.AreEqual(@"", path4.ToString());
             Assert.AreEqual(null, path5.ToString());
 
-            Assert.AreEqual(@"c:\foo", path1.Dir);
-            Assert.AreEqual(@"C:\Foo", path2.Dir);
-            Assert.AreEqual(@"c:\", path3.Dir);
+            Assert.AreEqual(@"c:\foo", path1.Dir.ToString());
+            Assert.AreEqual(@"C:\Foo", path2.Dir.ToString());
+            Assert.AreEqual(@"c:\", path3.Dir.ToString());
             //Assert.AreEqual(@"", path4.Dir);
             Assert.AreEqual(null, path5.Dir);
 

@@ -20,7 +20,7 @@ namespace PicPreview
     {
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        private int maxNavDist = 2;
+        private int maxNavDist = 0;
         private int maxLoadedImages = 5; //TODO compute from maxNavDist
         private int numBackgroundWorkers = 4;
         private static HashSet<string> imageExtensions;
