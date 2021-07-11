@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="PicPreview" Language="1033" Version="0.9.6" Manufacturer="Simon Breitfelder" UpgradeCode="e1077e8c-5c06-48cc-a741-b1f72044f85e">
+	<Product Id="*" Name="PicPreview" Language="1033" Version="0.9.7" Manufacturer="Simon Breitfelder" UpgradeCode="e1077e8c-5c06-48cc-a741-b1f72044f85e">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
